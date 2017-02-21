@@ -1,28 +1,31 @@
+import groovy.json.JsonSlurper
+
 buildscript {
+  ext.kotlinVersion       = '1.1.0-rc-91'
+  ext.shadowPluginVersion = '1.2.3'
+  
   repositories {
     jcenter()
+
+    maven {
+      url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1'
+    }
   }
+
   dependencies {
-    classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.0-beta-1103'
+    classpath "com.github.jengelman.gradle.plugins:shadow:${shadowPluginVersion}"
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
   }
 }
-   
-plugins {
-  id 'application'
-  id 'idea'
-  id 'com.github.johnrengelman.shadow' version '1.2.2'
-}
 
-apply plugin: "kotlin"
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'idea'
+apply plugin: 'kotlin'
 
-version = "1.0"
+version = '0.1.0'
 
-sourceCompatibility = "1.8"
-targetCompatibility = "1.8"
-
-[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
-
-mainClassName = 'com.github.plombardi89.hello.HelloWorldApplication'
+mainClassName = 'io.datawire.deployd.Deployd'
 
 idea {
   module {
@@ -32,47 +35,26 @@ idea {
 }
 
 ext {
-  dropwizardVersion = '0.9.1'
-  kotlinVersion = '1.0.0-beta-1103'
+  dropwizardVersion = '1.1.0-rc1'
 }
 
 repositories {
   jcenter()
-}
-
-sourceSets {
-  integTest {
-    kotlin.srcDir file('src/integTest/kotlin')
-    java.srcDir file('src/integTest/java')
-    resources.srcDir file('src/integTest/resources')
+  maven {
+    url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1'
   }
 }
-
-task integTest(type: Test) {
-  testClassesDir = sourceSets.integTest.output.classesDir
-  classpath = sourceSets.integTest.runtimeClasspath
-}
-
-check.dependsOn integTest
 
 dependencies {
-  compile (
-    "io.dropwizard:dropwizard-core:${dropwizardVersion}",
-    "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}",
-    "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}",
-  )
+  compile group: 'io.dropwizard', name: 'dropwizard-core', version: dropwizardVersion
 
-  testCompile("io.dropwizard:dropwizard-client:${dropwizardVersion}")
-  testCompile("io.dropwizard:dropwizard-testing:${dropwizardVersion}") {
-    exclude group: "org.glassfish.jersey.test-framework.providers"
-  }
+  compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.8.6'
 
-  testCompile("org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-inmemory:2.17")
+  compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlinVersion
+  compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlinVersion
 
-  integTestCompile sourceSets.main.output
-  integTestCompile configurations.testCompile
-  integTestCompile sourceSets.test.output
-  integTestRuntime configurations.testRuntime
+  testCompile group: 'io.dropwizard', name: 'dropwizard-client', version: dropwizardVersion
+  testCompile group: 'io.dropwizard', name: 'dropwizard-testing', version: dropwizardVersion
 }
 
 jar {
@@ -94,5 +76,5 @@ run {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.8'
+  gradleVersion = '3.4'
 }

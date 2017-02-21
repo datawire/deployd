@@ -1,0 +1,5 @@
+---
+deploydVersion: 1
+
+service:
+  name: hello
