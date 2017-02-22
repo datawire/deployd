@@ -60,3 +60,4 @@ The major theme of M1 is bootstrapping the system. It won't handle GitHub or Tra
 2. Deployd listens for incoming webhook events from the developers filesystem and deploys services to the same Kubernetes cluster based on the contents of the repositories `deployd.yaml`
 3. Deployd knows how to talk to AWS for the purpose of provisioning named infrastructure
 4. Deployd exposes primitive API(s) for seeing state of the kubernetes cluster, the "World" and learning what "slugs" can be put in the `deployd.yaml` file (RDS support)
+5. Bootstrap README
