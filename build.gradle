@@ -27,13 +27,6 @@ version = '0.1.0'
 
 mainClassName = 'io.datawire.deployd.Deployd'
 
-idea {
-  module {
-    downloadJavadoc = true
-    downloadSources = true
-  }
-}
-
 ext {
   dropwizardVersion = '1.1.0-rc1'
 }
@@ -52,6 +45,8 @@ dependencies {
 
   compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlinVersion
   compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlinVersion
+
+  compile group: 'org.rauschig', name: 'jarchivelib', version: '0.7.1'
 
   testCompile group: 'io.dropwizard', name: 'dropwizard-client', version: dropwizardVersion
   testCompile group: 'io.dropwizard', name: 'dropwizard-testing', version: dropwizardVersion
@@ -72,7 +67,7 @@ shadowJar {
 }
 
 run {
-  args 'server', './src/dist/dev.yml'
+  args 'server', 'dev.yml'
 }
 
 task wrapper(type: Wrapper) {
