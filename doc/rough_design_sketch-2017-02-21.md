@@ -50,3 +50,13 @@ The system listens for incoming webhook events for various integrations (e.g. Gi
 
 The system exposes a REST API and allows arbitrary creation / mgmt of resources within worlds.
 
+## Prototype Implementation
+
+### Milestone 1
+
+The major theme of M1 is bootstrapping the system. It won't handle GitHub or Travis hooks initially but the internals of the server should be defined enough to handle that in M2.
+
+1. Deployd is containerized and can be run on a Kubernetes cluster.
+2. Deployd listens for incoming webhook events from the developers filesystem and deploys services to the same Kubernetes cluster based on the contents of the repositories `deployd.yaml`
+3. Deployd knows how to talk to AWS for the purpose of provisioning named infrastructure
+4. Deployd exposes primitive API(s) for seeing state of the kubernetes cluster, the "World" and learning what "slugs" can be put in the `deployd.yaml` file (RDS support)
