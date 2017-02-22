@@ -30,10 +30,11 @@ def package(source_dir):
 def push(service_file, push_endpoint):
     import requests
     
-    data = open(service_file, 'rb').read()
-    res = requests.post(url=push_endpoint,
-                        data=data,
-                        headers={'Content-Type': 'application/octet-stream'})
+    #data = open(service_file, 'rb').read()
+    res = requests.post(url=push_endpoint, files={'file': open(service_file, 'rb')})
+    # res = requests.post(url=push_endpoint,
+    #                     data=data,
+    #                     headers={'Content-Type': 'application/octet-stream'})
 
 def main(args):
     if args['package']:

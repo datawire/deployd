@@ -1,5 +1,3 @@
-import groovy.json.JsonSlurper
-
 buildscript {
   ext.kotlinVersion       = '1.1.0-rc-91'
   ext.shadowPluginVersion = '1.2.3'
@@ -18,10 +16,10 @@ buildscript {
   }
 }
 
+apply plugin: 'java'
+apply plugin: 'kotlin'
 apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'idea'
-apply plugin: 'kotlin'
 
 version = '0.1.0'
 
@@ -40,6 +38,7 @@ repositories {
 
 dependencies {
   compile group: 'io.dropwizard', name: 'dropwizard-core', version: dropwizardVersion
+  compile group: 'io.dropwizard', name: 'dropwizard-forms', version: dropwizardVersion
 
   compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.8.6'
 
@@ -71,5 +70,5 @@ run {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '3.4'
+  gradleVersion = '3.3'
 }
