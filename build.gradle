@@ -21,7 +21,7 @@ apply plugin: 'kotlin'
 apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = '0.1.0'
+version = Utils.resolveVersion()
 
 mainClassName = 'io.datawire.deployd.Deployd'
 
@@ -68,6 +68,10 @@ shadowJar {
 
 run {
   args 'server', 'dev.yml'
+}
+
+task version() {
+  println(version)
 }
 
 task wrapper(type: Wrapper) {
