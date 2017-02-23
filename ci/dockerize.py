@@ -14,6 +14,7 @@ Options:
 
 import os
 import shlex
+import sys
 
 from subprocess import call, Popen, PIPE, STDOUT
 
@@ -23,15 +24,31 @@ def check_semver(text):
 
 
 def cmd(args):
-    args = shlex.split(args)
-    proc = Popen(args, stdout=PIPE, stderr=STDOUT)
-    out, err = proc.communicate()
-    exitcode = proc.returncode
-    return exitcode, out, err
+    cmd = shlex.split(args)
+
+    process = Popen(cmd, stdout=PIPE, stderr=STDOUT)
+    lines = []
+    while True:
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            line = output.strip()
+            print("=> " + line)
+            lines.append(line)
+
+    rc = process.poll()
+    return rc, '\n'.join(lines)
 
 
 def docker(args):
-    cmd("docker {}".format(args))
+    cmd_args = "docker {}".format(args)
+    (rc, out) = cmd(cmd_args)
+    if rc != 0:
+        raise ValueError("""Error! The `docker` command failed (exit code: {})
+
+The command was: {}
+        """.format(rc, cmd_args))
 
 
 def gradle(args):
@@ -52,12 +69,11 @@ def handle_git_tag(repo, commit, tag):
 
 
 def main(args):
-    print(gradle('--quiet version'))
     branch = os.getenv('TRAVIS_BRANCH', 'none').replace('/', '_')
     docker_repo = os.getenv('DOCKER_REPO')
     commit = os.getenv('COMMIT', os.getenv('TRAVIS_COMMIT'))
-    version = os.getenv('TRAVIS_TAG') or 'latest' if branch == 'master' else branch
-    is_tag = os.getenv('TRAVIS_TAG') != ''
+    version = gradle('--quiet version')
+    is_tag = os.getenv('TRAVIS_TAG') not in ['', None]
     is_pull_request = os.getenv('TRAVIS_PULL_REQUEST', 'false') != 'false'
     pull_request_number = os.getenv('TRAVIS_PULL_REQUEST_NUMBER')
     build_number = os.getenv('TRAVIS_BUILD_NUMBER')
@@ -68,10 +84,10 @@ def main(args):
         handle_git_tag(docker_repo, commit, version)
     else:
         print("==> Triggered from Push <{}>: Docker image WILL be built".format(branch))
-        docker('build -t {0}:{1} -t {0}:{2} -t {0}:ci-{3} --build-arg IMPL_VERSION=0.1.0 .'.format(docker_repo,
-                                                                                                   commit,
-                                                                                                   version,
-                                                                                                   build_number))
+        docker('build -t {0}:{1} -t {0}:{2} -t {0}:ci-{3} --build-arg IMPL_VERSION={2} .'.format(docker_repo,
+                                                                                                commit,
+                                                                                                version,
+                                                                                                build_number))
 
     if args['--no-push']:
         print("==> Skipping Docker image push")
