@@ -1,7 +1,7 @@
 # Deployd
 
 [![Build Status](https://travis-ci.org/datawire/deployd.svg?branch=master)](https://travis-ci.org/datawire/deployd)
-
+[![Docker Stars](https://img.shields.io/docker/stars/datawire/deployd.svg)](https://hub.docker.com/r/datawire/deployd)
 
 Deploy micro services on Kubernetes and provision cloud-infrastructure automatically.
 
