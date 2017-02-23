@@ -1,6 +1,16 @@
 ---
-deploydVersion: 1
+"@_deployd_version": 1
+
+worlds:
+  - develop
 
 service:
   name: hello
 
+docker:
+  registry: docker.io
+  image: datawire/deployd-hello-demo
+  tag: v1
+
+requires:
+  - postgresql96

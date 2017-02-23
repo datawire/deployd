@@ -1,8 +1,13 @@
 package io.datawire.deployd.resource
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.datawire.deployd.api.DeploydMetadata
 import io.datawire.deployd.api.Workspace
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition
 import org.glassfish.jersey.media.multipart.FormDataParam
+import org.rauschig.jarchivelib.ArchiveFormat
+import org.rauschig.jarchivelib.ArchiverFactory
+import org.rauschig.jarchivelib.CompressionType
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -14,7 +19,8 @@ import javax.ws.rs.core.MediaType
 
 
 @Path("/integrations")
-class WebhookResource @Inject constructor(private val workspace: Workspace) {
+class WebhookResource @Inject constructor(private val workspace: Workspace,
+                                          private val objectMapper: ObjectMapper) {
 
     @Path("/develop")
     @POST
@@ -25,5 +31,11 @@ class WebhookResource @Inject constructor(private val workspace: Workspace) {
         val outputFile = Files.createTempFile(workspace.path, null, ".tar.gz")
         val bytes = Files.copy(payload, outputFile, StandardCopyOption.REPLACE_EXISTING)
 
+        val archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP)
+        val extractDir = Files.createTempDirectory(workspace.path, disposition.name)
+        archiver.extract(outputFile.toFile(), extractDir.toFile())
+
+        val metadata = DeploydMetadata.load(objectMapper, extractDir.resolve("deployd.yaml"))
+        println(metadata)
     }
 }

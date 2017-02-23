@@ -3,7 +3,7 @@
 """dipap.py
 
 Development Integration Package and Push ("dipap"). Converts a directory into a GZIP compressed tarball and feeds it to
-the development integration endpoint ("/integrations/dev")
+the development integration endpoint ("/integrations/develop")
 
 Usage:
   dipap.py package <service_dir>
@@ -24,17 +24,12 @@ def package(source_dir):
         deployd = yaml.load(f)
     
     with tarfile.open('{0}.tar.gz'.format(deployd['service']['name']), 'w:gz') as tar:
-        tar.add(source_dir, arcname=os.path.basename(source_dir))
+        tar.add(source_dir, arcname='')
     
 
 def push(service_file, push_endpoint):
     import requests
-    
-    #data = open(service_file, 'rb').read()
     res = requests.post(url=push_endpoint, files={'file': open(service_file, 'rb')})
-    # res = requests.post(url=push_endpoint,
-    #                     data=data,
-    #                     headers={'Content-Type': 'application/octet-stream'})
 
 def main(args):
     if args['package']:
