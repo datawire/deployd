@@ -1,0 +1,10 @@
+{
+  "name": "example2",
+  "description": "example world",
+
+  "amazon": {
+    "accessKey": "foobar",
+    "secretKey": "bazbot",
+    "region": "us-east-1"
+  }
+}
