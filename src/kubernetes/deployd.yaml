@@ -1,0 +1,86 @@
+# file: src/main/kubernetes/deployd.yml
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: deployd-volume
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 5Gi
+  hostPath:
+    path: /data/pv0001/
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: deployd-workspace
+  namespace: d6e-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deployd-master
+  namespace: d6e-system
+  labels:
+    service: deployd-master
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: deployd-api
+  - port: 8081
+    targetPort: 8080
+    name: deployd-admin
+  selector:
+    service: deployd-master
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: deployd-master
+  namespace: d6e-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: deployd-master
+    spec:
+      containers:
+        - name: deployd
+          image: datawire/deployd:latest
+          ports:
+            - containerPort: 8080
+              name: deployd-api
+            - containerPort: 8081
+              name: deployd-admin
+          volumeMounts:
+            - mountPath: /service/config
+              name: deployd-config
+            - mountPath: /service/workspace
+              name: deployd-workspace
+          readinessProbe:
+              httpGet:
+                path: /healthcheck
+                port: 8081
+              initialDelaySeconds: 20
+              timeoutSeconds: 1
+      volumes:
+        - name: deployd-config
+          secret:
+            secretName: deployd-config
+        - name: deployd-workspace
+          persistentVolumeClaim:
+            claimName: deployd-workspace

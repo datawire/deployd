@@ -1,7 +1,7 @@
 #!/bin/sh
 
 JAVA_EXECUTABLE=java
-JAVA_ARGS="-jar deployd-${IMPL_VERSION}-all.jar server config.yaml"
+JAVA_ARGS="-jar deployd-${IMPL_VERSION}-all.jar server config/config.yaml"
 
 warn() {
   echo "$*"

@@ -7,7 +7,7 @@ Usage:
 
 Options:
     -h --help       Show this screen.
-    --no-push       Do NOT push image tags to a Docker repository.
+    --no-push       DOs NOT push image tags to a remote Docker repository.
     --version       The version of this program.
 
 """
@@ -23,7 +23,7 @@ def check_semver(text):
     return semantic_version.Version(text)
 
 
-def cmd(args):
+def cmd(args, print_stdout=True):
     cmd = shlex.split(args)
 
     process = Popen(cmd, stdout=PIPE, stderr=STDOUT)
@@ -34,7 +34,8 @@ def cmd(args):
             break
         if output:
             line = output.strip()
-            print("=> " + line)
+            if print_stdout:
+                print("=> " + line)
             lines.append(line)
 
     rc = process.poll()
@@ -52,7 +53,7 @@ The command was: {}
 
 
 def gradle(args):
-    return cmd("./gradlew {}".format(args))[1].rstrip()
+    return cmd("./gradlew {}".format(args), print_stdout=False)[1].rstrip()
 
 
 def handle_git_tag(repo, commit, tag):
@@ -69,7 +70,7 @@ def handle_git_tag(repo, commit, tag):
 
 
 def main(args):
-    branch = os.getenv('TRAVIS_BRANCH', 'none').replace('/', '_')
+    branch = os.getenv('TRAVIS_BRANCH').replace('/', '_') if os.getenv('TRAVIS_BRANCH') else None
     docker_repo = os.getenv('DOCKER_REPO')
     commit = os.getenv('COMMIT', os.getenv('TRAVIS_COMMIT'))
     version = gradle('--quiet version')
@@ -83,11 +84,19 @@ def main(args):
     elif is_tag:
         handle_git_tag(docker_repo, commit, version)
     else:
-        print("==> Triggered from Push <{}>: Docker image WILL be built".format(branch))
-        docker('build -t {0}:{1} -t {0}:{2} -t {0}:ci-{3} --build-arg IMPL_VERSION={2} .'.format(docker_repo,
-                                                                                                commit,
-                                                                                                version,
-                                                                                                build_number))
+        tags = ['-t {0}:{1}'.format(docker_repo, version)]
+        if commit:
+            tags.append('-t {0}:{1}'.format(docker_repo, commit))
+
+        if build_number:
+            tags.append('-t {0}:{1}'.format(docker_repo, build_number))
+
+        tags = ' '.join(tags)
+
+        if branch:
+            print("==> Triggered from Push <{}>: Docker image WILL be built".format(branch))
+
+        docker('build {0} --build-arg IMPL_VERSION={1} .'.format(tags, version))
 
     if args['--no-push']:
         print("==> Skipping Docker image push")

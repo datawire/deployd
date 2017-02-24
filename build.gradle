@@ -67,7 +67,7 @@ shadowJar {
 }
 
 run {
-  args 'server', 'dev.yml'
+  args 'server', 'config.yaml'
 }
 
 task version() {
