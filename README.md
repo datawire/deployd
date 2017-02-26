@@ -5,6 +5,10 @@
 
 Deploy micro services on Kubernetes and provision cloud-infrastructure automatically.
 
+## WARNING: Prototype Software!
+
+This is prototype software! There is little to no tests and the APIs **WILL** change as exploratory development continues. There is no guarantee this project will continue either.
+
 ## Getting Started
 
 ### Prerequisites
@@ -14,7 +18,7 @@ Deploy micro services on Kubernetes and provision cloud-infrastructure automatic
 
 ### Deploying Locally
 
-Deployd can be run locally for testing and experimentation! (rough outline, need more detail)
+Deployd can be run locally for testing and experimentation!
 
 #### Start Minikube
 
@@ -26,7 +30,6 @@ Starting local Kubernetes cluster...
 
 # wait for this output
 Kubectl is now configured to use the cluster.
-$>
 ```
 
 #### Deploy Deployd
@@ -45,8 +48,10 @@ bin/teardown-all.sh
 
 A world is a named place that exposes cloud providers (e.g. AWS) and ultimately [capabilities](#docs/design.md). Worlds also track the services and infrastructure contained within for the purpose of operational visibility into how the system is constructed.
 
+Worlds are expected to be created by an operations focused member of your team and most developers unless operating as both developer and operator are not likely to touch the "Worlds" functionality very often.
+
 ```bash
-$> cp ../../src/test/resources/worlds/example.json example.json
+$> cp ../../src/test/resources/worlds/example.json ./example.json
 
 # open example.json in your favorite editor and find these two keys in the JSON
 #
@@ -58,8 +63,22 @@ $> cp ../../src/test/resources/worlds/example.json example.json
 # "accessKey": "foobar"
 # "secretKey": "bazbot"
 #
-# Then save the file.
+# next find the `network` object.
+#
+# "network" {
+#   "id" null,
+#   "subnets": []
+# }
+#
+# edit `id` with an existing VPC identifier then update `subnets` with at least one subnet ID in the 
+# given VPC, for example: 
+#
+# "network" {
+#   "id": "vpc-ABCXYZ",
+#   "subnets": ["subnet-123456A"]
+# }
 
+# Upload the world configuration to the Deployd server
 curl -X POST -H "Content-Type: application/json" --data "@example.json" http://192.168.99.100:30735/worlds
 ```
 
@@ -67,9 +86,20 @@ Good to go!
 
 #### Deploy a Service!
 
-### Using Locally
+**NOTE:** Prototype! This is a very straitjacketed example but it should illustrate the concepts and is reproducible with a little luck ;)
 
-To be written
+Let's deploy a really simple Hello, World! app. There's already one living in the [hack/hello](hack/hello) directory.
+
+```bash
+
+cd hack/
+virtualenv venv
+. venv/bin/activate
+pip install -Ur requirements.txt
+
+bin/dipap.py package hello
+bin/dipap.py push hello.tar.gz
+```
 
 ## Developer Setup
 
