@@ -3,8 +3,15 @@
   "description": "example world",
 
   "amazon": {
-    "accessKey": "foobar",
-    "secretKey": "bazbot",
-    "region": "us-east-1"
-  }
+    "accessKey": null,
+    "secretKey": null,
+    "region": "us-east-1",
+
+    "network": {
+      "id": null,
+      "subnets": []
+    }
+  },
+
+  "terraform": "github.com/datawire/deployd-terraform"
 }
