@@ -23,8 +23,10 @@ def package(source_dir):
     with open('{0}/deployd.yaml'.format(source_dir), 'r') as f:
         deployd = yaml.load(f)
     
-    with tarfile.open('{0}.tar.gz'.format(deployd['service']['name']), 'w:gz') as tar:
+    with tarfile.open('tmp/{0}.tar.gz'.format(deployd['service']['name']), 'w:gz') as tar:
         tar.add(source_dir, arcname='')
+        print("""=> Wrote archive to tmp/{0}.tar.gz
+=> Run `bin/dipap.py push tmp/{0}.tar.gz` to push the changes.""".format(deployd['service']['name']))
     
 
 def push(service_file, push_endpoint):

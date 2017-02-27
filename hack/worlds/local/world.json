@@ -1,7 +1,0 @@
-{
-  "name": "local",
-
-  "capabilities": [
-    "kubernetes"
-  ]
-}
