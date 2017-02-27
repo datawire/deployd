@@ -1,7 +1,7 @@
 FROM datawire/base-ubuntu:f57de33dfe
 MAINTAINER Datawire <dev@datawire.io>
-LABEL PROJECT_REPO_URL         = "git@github.com:datawire/cloud-service-pipeline-example.git" \
-      PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/cloud-service-pipeline-example" \
+LABEL PROJECT_REPO_URL         = "git@github.com:datawire/deployd.git" \
+      PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/deployd/hack/hello" \
       DESCRIPTION              = "Datawire Hello" \
       VENDOR                   = "Datawire, Inc." \
       VENDOR_URL               = "https://datawire.io/"
@@ -41,7 +41,7 @@ RUN apt-get update && \
             python-dev && \
     pip install -U uwsgi==2.0.14 && \
     rm -f /etc/nginx/sites-enabled/default && \
-    rm -f /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Set WORKDIR to /datawire which is the root of all our apps then COPY only requirements.txt to avoid screwing up Docker
 # caching and causing a full reinstall of all dependencies when dependencies are not changed.
@@ -53,8 +53,7 @@ RUN pip install -r requirements.txt
 
 # COPY the app code and configuration into place then perform any final configuration steps.
 COPY . ./
-RUN ln -sf /datawire/config/hello.conf /etc/nginx/sites-enabled/ && \
+RUN ln -sf /service/config/hello.conf /etc/nginx/sites-enabled/ && \
     chmod +x entrypoint.sh
 
-EXPOSE 5100
 ENTRYPOINT ["./entrypoint.sh"]
