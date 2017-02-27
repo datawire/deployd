@@ -3,7 +3,14 @@
 [![Build Status](https://travis-ci.org/datawire/deployd.svg?branch=master)](https://travis-ci.org/datawire/deployd)
 [![Docker Stars](https://img.shields.io/docker/stars/datawire/deployd.svg)](https://hub.docker.com/r/datawire/deployd)
 
-Deploy micro services on Kubernetes and provision cloud-infrastructure automatically.
+Every microservice has its own unique set of runtime configuration: which database to use, whether to deploy in an auto-scaling group, and so forth.
+
+* Deployd enables *developers* to specify the runtime configuration in a YAML file.
+* Deployd enables *ops engineers* to define the runtime configuration parameters exposed to developers
+
+These two capabilities enable developers and operations to automatically provision and deploy a microservice to a specific cloud environment using deployd.
+
+Deployd is currently designed for Kubernetes.
 
 ## WARNING: Prototype Software!
 
@@ -70,8 +77,8 @@ $> cp ../../src/test/resources/worlds/example.json ./example.json
 #   "subnets": []
 # }
 #
-# edit `id` with an existing VPC identifier then update `subnets` with at least one subnet ID in the 
-# given VPC, for example: 
+# edit `id` with an existing VPC identifier then update `subnets` with at least one subnet ID in the
+# given VPC, for example:
 #
 # "network" {
 #   "id": "vpc-ABCXYZ",
