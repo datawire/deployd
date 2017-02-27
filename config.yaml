@@ -1,3 +1,6 @@
+terraform:
+  executable: /bin/terraform
+
 workspace:
   path: "./workspace"
 

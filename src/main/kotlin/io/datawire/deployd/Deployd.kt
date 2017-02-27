@@ -26,10 +26,16 @@ class Deployd : Application<DeploydConfiguration>() {
         val yamlMapper = Jackson.newObjectMapper(YAMLFactory())
         yamlMapper.registerModule(KotlinModule())
 
+        initializeDeployd(configuration)
+
         environment.jersey().apply {
             register(WorldsResource(configuration.workspace, environment.objectMapper))
             register(WebhookResource(configuration.workspace, yamlMapper))
         }
+    }
+
+    private fun initializeDeployd(configuration: DeploydConfiguration) {
+        configuration.workspace.initialize()
     }
 
     companion object {

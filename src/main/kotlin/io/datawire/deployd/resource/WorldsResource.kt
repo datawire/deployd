@@ -8,13 +8,7 @@ import javax.ws.rs.*
 
 
 @Path("/worlds")
-class WorldsResource(workspace: Workspace, private val mapper: ObjectMapper) {
-
-    val workspace: java.nio.file.Path = workspace.path.resolve("worlds")
-
-    init {
-        Files.createDirectories(this.workspace)
-    }
+class WorldsResource(private val workspace: Workspace, private val mapper: ObjectMapper) {
 
     @GET
     @Path("/{name}")
@@ -31,10 +25,10 @@ class WorldsResource(workspace: Workspace, private val mapper: ObjectMapper) {
     fun createWorld(world: World) = storeWorld(world)
 
     private fun storeWorld(world: World) {
-        mapper.writeValue(Files.createFile(workspace.resolve("${world.name}.json")).toFile(), world)
+        mapper.writeValue(Files.createFile(workspace.worldsWorkspace.resolve("${world.name}.json")).toFile(), world)
     }
 
     private fun loadWorld(name: String): World {
-        return mapper.readValue(workspace.resolve("$name.json").toFile(), World::class.java)
+        return mapper.readValue(workspace.worldsWorkspace.resolve("$name.json").toFile(), World::class.java)
     }
 }
