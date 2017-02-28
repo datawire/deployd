@@ -83,13 +83,9 @@ There are three built-in deployment strategies in Deployd.
 
 | Strategy    | Description |
 | ------------| ----------- |
-| Append-Only | Given `<N>` instances of `$service.currentVersion` then run `$request.newVersion` 
-in parallel without removing `$service.currentVersion`. |
-| Blue-Green  | Given `<N>` instances of $service.currentVersion` in color-group `GREEN` then 
-create a parallel color-group `BLUE` with `$request.newVersion`. Once `BLUE` is "ready" switch 
-the frontends target from `GREEN` to `BLUE`. |
-| Rolling     | Given `<N>` instances of $service then migrate each instance 
-from `$service.currentVersion` to `$request.newVersion` by updating `(N >= 1)` at a time. |
+| Append-Only | Given `<N>` instances of `$service.currentVersion` then run `$request.newVersion` in parallel without removing `$service.currentVersion`. |
+| Blue-Green  | Given `<N>` instances of `$service.currentVersion` in color-group `GREEN` then create a parallel color-group `BLUE` with `$request.newVersion`. Once `BLUE` is "ready" switch the frontends target from `GREEN` to `BLUE`. |
+| Rolling     | Given `<N>` instances of `$service.anyVersion` then migrate each instance from `$service.currentVersion` to `$request.newVersion` by updating `(N >= 1)` at a time. |
 
 #### 2a. Append-Only Mapping
 
