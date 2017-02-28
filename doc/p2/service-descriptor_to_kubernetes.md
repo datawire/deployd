@@ -69,7 +69,7 @@ Create a namespace manifest `$namespace`:
 
 ```json
 {
-    "kind"       : "Namespace"
+    "kind"       : "Namespace",
     "apiVersion" : "v1",
     "metadata"   : {"name": "${service.name}"}
 }
