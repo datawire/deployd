@@ -12,9 +12,31 @@ deploy or update the service.
 
 ## Mapping Methodology
 
-At a very high level the mapping function operates on the contents of `deployd.yaml` and the 
-existing state of a deployment. In the context of this diagram "existing state" refers to a 
-services current deployed state which may be nonexistent for a brand new service.
+At a very high level the mapping function operates on the contents of `deployd.yaml`, the 
+existing state of a deploymentl, and an incoming deployment request which is the trigger to begin 
+a deployment. In the context of this diagram "existing state" refers to a services current 
+deployed state which may be nonexistent for a brand new service.
+
+```text
+
++--------------------+
+| deployment request |---+
++--------------------+   |
+                         |
+                         |
+                         |
++--------------+         |    +-------------------------+    +--------------------------------+
+| deployd.yaml |---------*--->]     mapping function    [--->| (n >= 0) Kubernetes operations |      
++--------------+         |    |  existing  =>  desired  |    +--------------------------------+   
+                         |    +-------------------------+                             
+                         |                                        
+                         |                                   
+                         |
++----------------+       |
+| existing state |-------+
++----------------+
+
+```
 
 ### Future: Alternative Mappings
 
@@ -29,25 +51,14 @@ deployment equivalent of an Abstract Syntax Tree ("AST") that could be converted
 formats (e.g. Docker Compose), or customizable and reusable scripts that can be plugged into 
 another part of a deployment pipeline.
 
-```text
-
-+--------------+           +-------------------------+    +--------------------------------+
-| deployd.yaml |------*--->]     mapping function    [--->| (n >= 0) Kubernetes operations |        
-|              |      |    |  existing  =>  desired  |    +--------------------------------+       
-+--------------+      |    +-------------------------+                             
-                      |
-                      |                                    
-                      |                                   
-                      |
-+----------------+    |
-| existing state |----+
-+----------------+
-
-```
-
 ## Mapping Algorithm
 
 Given a service descriptor and inflight [Deployment Request](docs/deployment-request.md) there 
 are two paths that can be followed. The first path is the mechanics for new service deployment 
 while the second path is for existing service upgrades.
 
+### New Service
+
+Given the 
+
+### Existing Service
