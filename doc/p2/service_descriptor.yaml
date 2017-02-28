@@ -1,3 +1,7 @@
+# Prototype 2: Service Descriptor
+#
+# A Service Descriptor is a high-level source of information for describing how a service is supposed to move from a singular artifact (e.g. Docker Image) into a running actualized service. Under the hood this descriptor is transformed by Deployd into a number of Kubernetes and Terraform files and operations.
+
 ---
 # Name of the Service deployed in the World
 name: hello
