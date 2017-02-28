@@ -40,6 +40,9 @@ dependencies {
   compile group: 'io.dropwizard', name: 'dropwizard-core', version: dropwizardVersion
   compile group: 'io.dropwizard', name: 'dropwizard-forms', version: dropwizardVersion
 
+  compile group: 'io.fabric8', name: 'kubernetes-client', version: '2.1.1'
+  compile group: 'io.fabric8', name: 'kubernetes-model', version: '1.0.67'
+
   compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.8.6'
   compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.8.6'
 
