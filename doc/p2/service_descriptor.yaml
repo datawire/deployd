@@ -1,6 +1,11 @@
 # Prototype 2: Service Descriptor
 #
-# A Service Descriptor is a high-level source of information for describing how a service is supposed to move from a singular artifact (e.g. Docker Image) into a running actualized service. Under the hood this descriptor is transformed by Deployd into a number of Kubernetes and Terraform files and operations.
+# A Service Descriptor is a high-level source of information for describing how a service is supposed to move from a singular 
+# artifact (e.g. Docker Image) into a running actualized service. Under the hood this descriptor is transformed by Deployd into
+# a number of Kubernetes and Terraform files and operations.
+# 
+# *NOTE*: Keep in mind this is not Kubernetes or Terraform specific. It's designed to be provider agnostic.
+#
 
 ---
 # Name of the Service deployed in the World
@@ -48,14 +53,30 @@ network:
       # The port to be opened.
       port: 80
 
-      # Must reference one of the backend ports defined below
+      # Must reference one of the backend ports defined below. Using a "name" rather than a hard-coded port is strongly
+      # recommended in Kubernetes becuase it means there is a level of indirection and ports can be changed safely between
+      # service versions... from the docs (https://kubernetes.io/docs/user-guide/services/#defining-a-service):
+      # 
+      #       "Note that a Service can map an incoming port to any targetPort. By default the 
+      #        targetPort will be set to the same value as the port field. Perhaps more 
+      #        interesting is that targetPort can be a string, referring to the name of a 
+      #        port in the backend Pods. The actual port number assigned to that name can be
+      #        different in each backend Pod. This offers a lot of flexibility for deploying 
+      #        and evolving your Services. For example, you can change the port number that 
+      #        pods expose in the next version of your backend software, without breaking 
+      #        clients"
       target: rest-api
 
   # "backends" are the exposed ports on the container, for example, the hypothetical "Hello" service exposes two ports,
   # one port is for the REST API while another port hosts an administrative API only the author cares about.
+  #
+  # It's a good practice in Kubernetes to use "name" rather than hard coded ports so we really should try to enforce that.
   backends:
+      # name is a "mapped" from the frontend -> backend.
     - name: rest-api
       protocol: tcp # The allowed transport protocol (default: tcp, allowed: tcp, udp)
+      
+      # The port that the container is listening to.
       port: 5001
 
     - name: admin-api
