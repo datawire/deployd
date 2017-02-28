@@ -2,10 +2,13 @@
 #
 # A Service Descriptor is a high-level source of information for describing how a service is supposed to move from a singular 
 # artifact (e.g. Docker Image) into a running actualized service. Under the hood this descriptor is transformed by Deployd into
-# a number of Kubernetes and Terraform files and operations.
+# a number of Kubernetes and Terraform files and operations (and may touch even more than that).
 # 
 # *NOTE*: Keep in mind this is not Kubernetes or Terraform specific. It's designed to be provider agnostic.
 #
+# When deployment requests are received by Deployd then this configuration should be read in and used to generate all the
+# necessary configuration files + generate an execution plan. The output of that transformation step is then applied to the
+# fabric.
 
 ---
 # Name of the Service deployed in the World
