@@ -101,8 +101,8 @@ The Append-Only strategy is **very advanced** and while conceptually simple has 
         "apiVersion": "v1",
         
         "metadata": {
-            "namespace": "${service.name"}
-            "name": "${service.name}-${request.version}"
+            "namespace": "${service.name}",
+            "name": "${service.name}-${request.version}",
             "labels": { 
                 "service": "${service.name}-${request.version}" 
             }
