@@ -85,7 +85,7 @@ frontend:
         },
         
         "spec": {
-            "type": "None"
+            "type": "None",
             "clusterIP": "None"
         }
     }
@@ -120,16 +120,16 @@ frontend:
             }
         },
         
-        "selector": {  }
+        "selector": {  },
         
         "spec": {
             "type": "ClusterIP",
             "ports": [
                 {
                     "name": "rest-api",
-                    "protocol": "${ backends["rest-api"].protocol }",
+                    "protocol": "${ backends['rest-api'].protocol }",
                     "port": 80,
-                    "targetPort": "${ backends["rest-api"].name }"
+                    "targetPort": "${ backends['rest-api'].name }"
                 }
             ]
         }
