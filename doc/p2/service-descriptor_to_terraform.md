@@ -21,20 +21,29 @@ A [deployd.yaml](docs/deployd.yaml) YAML document is an interface for developers
 
 ## Sources of information
 
-Terraform modules have two sources of truth that are used during mapping. The first source of truth is a **World** definition, for example, the AWS network (VPC) to provision in, which subnets can be used and where security credentials come from are all pieces of information contained in a World (somehow). This information needs to be fed into Terraform during input mapping. The second source of information is customizable parameters that a developer can legally override, for example, the number of IOPS required by a database.
+Terraform modules have two sources of truth that are used during mapping:
+
+1. World Information
+
+   The first source of truth is a **World** definition, for example, the AWS network (VPC) to provision in, which subnets can be used and where security credentials come from are all pieces of information contained in a World (somehow).
+
+2. Deployment Parameters
+
+   The second source of information is the Terraform module to use (e.g. "postgresql-v96") and then customizable parameters that a developer can legally override, for example, the number of IOPS required by a database. This information is sourced from the service descriptor associated with the incoming deployment request.
 
 ## Mapping Methodology
 
-Terraform mapping is fairly straightforward because Terraform handles most of the heavy lifting.
+Terraform mapping is fairly straightforward because Terraform handles most of the heavy lifting. 
 
 ```text
 +--------------+
-| World Config |--------+
-+--------------+        |
-                        |
-                        |
-+-------------------+   |    +-------------------------+    +--------------------------------+
-| Deploment Request |---+--->]     mapping function    [--->| (n >= 0) Terraform Variables   |      
-+-------------------+        |  existing  =>  desired  |    +--------------------------------+
-                             +-------------------------+
+| World Config |---------+
++--------------+         |
+                         |
+                         |
++--------------------+   |    +-------------------------+    +--------------------------------+
+| Deployment Request |---+--->]     mapping function    [--->| (n >= 0) Terraform Variables   |      
++--------------------+        |  existing  =>  desired  |    +--------------------------------+
+                              +-------------------------+
 ```
+
