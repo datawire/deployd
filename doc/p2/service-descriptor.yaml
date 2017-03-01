@@ -32,11 +32,8 @@ update:
 # Network configuration that the developer is allowed to define.
 network:
 
-  # "frontends" are discoverable entry points into the system. In a vanilla Kubernetes setup this means mapping a
+  # "frontend" is discoverable entry point into the system. In a vanilla Kubernetes setup this means mapping a
   # "frontend" to one or more Service manifests.
-  #
-  # "frontends" can be empty in which case we will create "headless" services in vanilla Kubernetes. That might be
-  # highly desirable for Envoy-enabled internal services.
   #
   # *NOTE*: Frontends more than anything need a lot of definition because they are the access point to a service and
   #         that has implications for updates in the system. For example, blue-green deployments in Kubernetes work by
@@ -45,30 +42,35 @@ network:
   frontends:
       # how the underlying fabric exposes a service in a vanilla kubernetes the values are mapped as:
       #
-      #   private              -> ServiceType.ClusterIP
-      #   public               -> ServiceType.NodePort
-      #   public:load-balanced -> ServiceType.LoadBalancer
-    - type: public
+      #   none                   -> v1.Service.spec.type = 'None'
+      #                          -> v1.Service.spec.clusterIP = 'None'
+      #
+      #   internal               -> v1.Service.spec.type = 'ClusterIP'
+      #
+      #   external               -> v1.Service.spec.type = 'NodePort'
+      #
+      #   external:load-balancer -> v1.Service.spec.type = 'LoadBalancer'
+    - type: external
+      ports:
+          # Must reference one of the backend ports defined below. Using a "name" rather than a hard-coded port is strongly
+          # recommended in Kubernetes because it means there is a level of indirection and ports can be changed safely between
+          # service versions... from the docs (https://kubernetes.io/docs/user-guide/services/#defining-a-service):
+          #
+          #       "Note that a Service can map an incoming port to any targetPort. By default the
+          #        targetPort will be set to the same value as the port field. Perhaps more
+          #        interesting is that targetPort can be a string, referring to the name of a
+          #        port in the backend Pods. The actual port number assigned to that name can be
+          #        different in each backend Pod. This offers a lot of flexibility for deploying
+          #        and evolving your Services. For example, you can change the port number that
+          #        pods expose in the next version of your backend software, without breaking
+          #        clients"
+        - target: rest-api
 
-      # The allowed transport protocol (default: tcp, allowed: tcp, udp)
-      protocol: tcp
+          # The allowed transport protocol (can be automatically inferred from the target backend)
+          protocol: tcp
 
-      # The port to be opened.
-      port: 80
-
-      # Must reference one of the backend ports defined below. Using a "name" rather than a hard-coded port is strongly
-      # recommended in Kubernetes because it means there is a level of indirection and ports can be changed safely between
-      # service versions... from the docs (https://kubernetes.io/docs/user-guide/services/#defining-a-service):
-      # 
-      #       "Note that a Service can map an incoming port to any targetPort. By default the 
-      #        targetPort will be set to the same value as the port field. Perhaps more 
-      #        interesting is that targetPort can be a string, referring to the name of a 
-      #        port in the backend Pods. The actual port number assigned to that name can be
-      #        different in each backend Pod. This offers a lot of flexibility for deploying 
-      #        and evolving your Services. For example, you can change the port number that 
-      #        pods expose in the next version of your backend software, without breaking 
-      #        clients"
-      target: rest-api
+          # The port to be exposed.
+          port: 80
 
   # "backends" are the exposed ports on the container, for example, the hypothetical "Hello" service exposes two ports,
   # one port is for the REST API while another port hosts an administrative API only the author cares about.
