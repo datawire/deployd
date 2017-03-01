@@ -36,7 +36,7 @@ network:
   # "frontend" to one or more Service manifests.
   #
   # "frontends" can be empty in which case we will create "headless" services in vanilla Kubernetes. That might be
-  # highly desirable for Envoy-enabled services.
+  # highly desirable for Envoy-enabled internal services.
   #
   # *NOTE*: Frontends more than anything need a lot of definition because they are the access point to a service and
   #         that has implications for updates in the system. For example, blue-green deployments in Kubernetes work by
