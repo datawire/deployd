@@ -146,11 +146,6 @@ An external service is one that is exposed on a internet-addressable IP address 
 
 An external service is one that is exposed on a internet-addressable IP address for each cluster node. The mapping for an external frontend is identical to [internal](#case-internal) except `v1.Service.spec.type = LoadBalanced`.
 
-```yaml
-frontend:
-    type: none
-```
-
 ## Networking: Backends
 
 Under the descriptors `networking` object there is a `backends` list. Backends describe what ports should be exposed on the services container (the "backend"). 
