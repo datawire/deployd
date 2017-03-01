@@ -60,6 +60,24 @@ while the second path is for existing service upgrades.
 
 Under the descriptors `networking` object there is a `frontend` object. The "frontend" is an abstract concept that **DOES NOT** necessarily map 1:1 with an equivalent Kubernetes object such as `v1.Service` or `v1.Ingress` because once a services deployment model is accounted for by the mapper then the system may need to create additional objects to facilitate orchestrating the particular technique.
 
+### Frontend Mapper
+
+The inputs to the frontend mapper are the `networking` and `update` config in the service descriptor as well as the existing state if any.
+
+```text
++---------------------------+         +-------------------------+    +--------------------------------+
+| deployd.yaml [networking] |----*--->]    mapping function     [--->| (n >= 0) kubernetes/v1.Service |      
++---------------------------+    |    +-------------------------+    +--------------------------------+
+| deployd.yaml [update]     |    |
++---------------------------+    |    
+                                 |                                
+                                 |                           
+                                 |
++----------------+               |
+| existing state |---------------+
++----------------+
+```
+
 ### Case: No Frontend
 
 An internal service is not exposed outside of Kubernetes. Sometimes it is desirable to have a service that has no frontend because you do not want Kubernetes to handle routing traffic to backends.
@@ -151,6 +169,12 @@ An external service is one that is exposed on a internet-addressable IP address 
 Under the descriptors `networking` object there is a `backends` list. Backends describe what ports should be exposed on the services container (the "backend"). 
 
 Backend objects are mapped to Kubernetes `v1.PodSpec.Container[$service.name].ports` entries (`v1.ContainerPort`):
+
+```text
++-----------------------------------+    +-------------------------+    +--------------------------------------+
+| deployd.yaml [networking.backends |--->]     mapping function    [--->| (n >= 0) kubernetes/v1.ContainerPort |      
++-----------------------------------+    +-------------------------+    +--------------------------------------+
+```
 
 Consider a service that requires three open ports on the container:
 
