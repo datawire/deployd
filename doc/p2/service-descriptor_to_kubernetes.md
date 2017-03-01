@@ -9,6 +9,8 @@ deploy or update the service.
 
 | Term | Definition |
 | ---- | ---------- |
+| Backend  | A named and exposed port on a service (e.g. rest-api:5001 means the REST API is exposed on port 5001). |
+| Frontend | An abstraction for accessing one or more backends from a single point. |
 
 ## Mapping Methodology
 
