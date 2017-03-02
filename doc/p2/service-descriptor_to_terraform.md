@@ -73,5 +73,34 @@ Terraform modules are composed of four primary things:
 
 ## Input Mapping
 
+In a Terraform module there needs to be `deployd-terraform.yaml` file that maps inputs from Deployd into Terraform variables.
+
 ## Output Mapping
+
+In a Terraform module there needs to be `deployd-terraform.yaml` file that maps inputs from Deployd into environment variables
+
+## Format `deployd-terraform.yaml`
+
+Initial prototype of the format for the mapping file which is committed alongside the module.
+
+```
+---
+inputs:
+    DB_NETWORK          : "${ world.parameter.aws_vpc_id }"
+    DB_IOPS             : "${ deploy.parameter.iops }"
+    DB_STORAGE_CAPACITY : "${ deploy.parameter.storage_capacity }"
+    
+outputs:
+    DB_NAME     : "${ terraform.output.database_name }"
+    DB_USERNAME : "${ terraform.output.database_username }"
+    DB_PASSWORD : "${ terraform.output.database_password }"
+    DB_URL      : "${ terraform.output.database_url }"
+    DB_PORT     : "${ terraform.output.database_port }"
+```    
+
+
+
+
+
+
 
