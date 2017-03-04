@@ -24,7 +24,7 @@ if (!JavaVersion.current().java8Compatible) {
 }
 
 group   = 'io.datawire.deployd'
-version = Utils.resolveVersion()
+version = new BuildInfo().resolveVersion()
 
 ext {
   jacksonVersion     = '2.8.6'
