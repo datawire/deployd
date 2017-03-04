@@ -1,8 +1,33 @@
 # --- Java ---
-build/
+build
+target
 
-# --- IDEA ---
+# --- Eclipse ---
+.project
+
+# --- IntelliJ ---
 .idea
+*.iml
 
-# --- K Desktop Environment ("KDE") ---
+# --- OS Junk ---
 .directory
+.DS_Store
+
+# --- Gradle ---
+.gradle
+
+# --- Vert.x ---
+.vertx
+
+# --- Python ---
+*.pyc
+
+# --- Secrets ---
+*.key
+*.pem
+*.p12
+*.pkcs12
+*.jks
+*.jceks
+*.password
+*.passwd

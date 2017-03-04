@@ -1,2 +1,0 @@
-# Deployd Developer Manual
-

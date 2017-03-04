@@ -9,6 +9,6 @@ class Utils {
     }
 
     private static env(String name, String defaultValue = null) {
-        return System.getenv(name) ?: defaultValue
+        System.getenv(name) ?: defaultValue
     }
 }
