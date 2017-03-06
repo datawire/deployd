@@ -1,7 +1,9 @@
-package io.datawire.deployd
+package io.datawire.deployd.service
 
+import io.datawire.deployd.service.*
 import org.junit.Test
 import org.assertj.core.api.Assertions.*
+import java.net.URI
 
 
 class ModelTest {
@@ -12,6 +14,14 @@ name: test
 metadata:
   foo: bar
   baz: bot
+
+deployable:
+  type: docker
+  registry: docker.io
+  image: foo/bar
+  resolver:
+    type: provided
+    tag: 1.0
 
 networking:
   frontends:
@@ -45,5 +55,12 @@ networking:
         assertThat(service.networking.backends).containsOnly(
                 Backend("be-tcp", 5000, PortProtocol.TCP),
                 Backend("be-udp", 5001, PortProtocol.UDP))
+
+        assertThat(service.deployable).isInstanceOf(DockerImage::class.java)
+        val deployable = service.deployable as DockerImage
+
+        assertThat(deployable.registry).isEqualTo(URI.create("docker.io"))
+        assertThat(deployable.image).isEqualTo("foo/bar")
+        assertThat(deployable.resolver).isEqualTo(ProvidedDockerTagResolver("1.0"))
     }
 }

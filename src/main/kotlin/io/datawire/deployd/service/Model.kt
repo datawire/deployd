@@ -1,11 +1,20 @@
-package io.datawire.deployd
+package io.datawire.deployd.service
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.datawire.vertx.json.ObjectMappers
 
 typealias Metadata = Map<String, String>
+
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+        JsonSubTypes.Type(value = DockerImage::class, name = "docker")  // TODO: investigate how Jackson does type mapping as there is a tight coupling here.
+)
+abstract class Deployable
 
 enum class PortProtocol {
 
@@ -61,6 +70,7 @@ data class Frontend(@JsonProperty val name: String,
 data class Descriptor(
         @JsonProperty val name: String,
         @JsonProperty val metadata: Metadata = emptyMap(),
+        @JsonProperty val deployable: Deployable,
         @JsonProperty val networking: Networking
 )
 

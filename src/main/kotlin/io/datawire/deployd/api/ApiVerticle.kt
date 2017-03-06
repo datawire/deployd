@@ -1,6 +1,7 @@
 package io.datawire.deployd.api
 
 import io.datawire.deployd.ApiConfig
+import io.datawire.deployd.deployment.DeploymentApi
 import io.datawire.vertx.BaseVerticle
 import io.datawire.vertx.VerticleDeployer
 import io.vertx.core.AsyncResult
@@ -54,7 +55,7 @@ class ApiVerticle : BaseVerticle<ApiConfig>(ApiConfig::class), Api {
     }
 
     override fun configure(router: Router) {
-
+        DeploymentApi().configure(router)
     }
 
     object Deployer : VerticleDeployer() {
