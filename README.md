@@ -1,16 +1,16 @@
-# Deployd
+# microDeploy
 
-[![Build Status](https://travis-ci.org/datawire/deployd.svg?branch=master)](https://travis-ci.org/datawire/deployd)
-[![Docker Stars](https://img.shields.io/docker/stars/datawire/deployd.svg)](https://hub.docker.com/r/datawire/deployd)
+[![Build Status](https://travis-ci.org/datawire/microd.svg?branch=master)](https://travis-ci.org/datawire/microd)
+[![Docker Stars](https://img.shields.io/docker/stars/datawire/microd.svg)](https://hub.docker.com/r/datawire/microd)
 
 Every micro service has its own unique set of runtime configuration: which database to use, whether to deploy in an auto-scaling group, and so forth.
 
-* Deployd enables *developers* to specify the runtime configuration in a YAML file.
-* Deployd enables *ops engineers* to define the runtime configuration parameters exposed to developers
+* microDeploy enables *developers* to specify the runtime configuration in a YAML file.
+* microDeploy enables *ops engineers* to define the runtime configuration parameters exposed to developers
 
-These two capabilities enable developers and operations to automatically provision and deploy a microservice to a specific cloud environment using deployd.
+These two capabilities enable developers and operations to automatically provision and deploy a microservice to a specific cloud environment using microd.
 
-Deployd is currently designed for Kubernetes.
+microDeploy is currently designed for Kubernetes.
 
 ## WARNING: Prototype Software!
 
@@ -20,12 +20,12 @@ This is prototype software! There is little to no tests and the APIs **WILL** ch
 
 ### Prerequisites
 
-1. An [Amazon Web Services ("AWS")](https://aws.amazon.com/) account and active AWS API credentials to use Deployd.
+1. An [Amazon Web Services ("AWS")](https://aws.amazon.com/) account and active AWS API credentials to use microDeploy.
 2. [Minikube](https://github.com/kubernetes/minikube) is installed and works locally.
 
 ### Deploying Locally
 
-Deployd can be run locally for testing and experimentation!
+microDeploy can be run locally for testing and experimentation!
 
 #### Start Minikube
 
@@ -39,9 +39,9 @@ Starting local Kubernetes cluster...
 Kubectl is now configured to use the cluster.
 ```
 
-#### Deploy Deployd
+#### Deploy microDeploy
 
-Starting and stopping Deployd is painless:
+Starting and stopping microDeploy is painless:
 
 ```bash
 # startup the server
@@ -85,7 +85,7 @@ $> cp src/test/resources/worlds/world.json ./world.json
 #   "subnets": ["subnet-123456A"]
 # }
 
-# Upload the world configuration to the Deployd server
+# Upload the world configuration to the microDeploy server
 curl -X POST -H "Content-Type: application/json" --data "@world.json" http://127.0.0.1/worlds
 ```
 
