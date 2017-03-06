@@ -19,6 +19,9 @@ package io.datawire.deployd
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import io.datawire.vertx.Config
+import java.nio.file.Path
+
+object EmptyConfig : Config
 
 data class ServerConfig(
         @JsonProperty("port") val port: Int = 5000,
@@ -30,4 +33,7 @@ data class ApiConfig(
         val server: ServerConfig = ServerConfig(port = 52689, host = "0.0.0.0")) : Config
 
 
-data class DeploydConfig(@JsonProperty("api") val api: ApiConfig) : Config
+data class WorkspaceConfig(@JsonProperty("path") val path: Path)
+
+data class DeploydConfig(@JsonProperty val api: ApiConfig,
+                         @JsonProperty val workspace: WorkspaceConfig) : Config

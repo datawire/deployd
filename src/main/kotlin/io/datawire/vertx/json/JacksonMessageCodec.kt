@@ -18,18 +18,17 @@ package io.datawire.vertx.json
 
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.MessageCodec
+import kotlin.reflect.KClass
 
 
-class JacksonMessageCodec<T>(private val clazz: Class<T>) : MessageCodec<T, T> {
+class JacksonMessageCodec<T: Any>(private val clazz: KClass<T>) : MessageCodec<T, T> {
 
     init {
-        if (clazz.canonicalName == null) {
-            throw IllegalStateException("Class name is null")
-        }
+        clazz.qualifiedName ?: throw IllegalStateException("Class name is null")
     }
 
     override fun systemCodecID(): Byte = -1
-    override fun name(): String = clazz.canonicalName
+    override fun name(): String = clazz.qualifiedName!!
     override fun transform(message: T?) = message
 
     override fun encodeToWire(buffer: Buffer?, message: T?) {
@@ -42,6 +41,6 @@ class JacksonMessageCodec<T>(private val clazz: Class<T>) : MessageCodec<T, T> {
         val messageLength = buffer!!.getInt(bufferPos)
         val messageStartPos = bufferPos + 4 // Jump 4 because getInt() == 4 bytes
         val rawJson = buffer.getString(messageStartPos, messageStartPos + messageLength)
-        return ObjectMappers.mapper.readValue(rawJson, clazz)
+        return ObjectMappers.mapper.readValue(rawJson, clazz.java)
     }
 }

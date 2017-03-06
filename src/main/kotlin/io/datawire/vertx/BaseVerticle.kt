@@ -49,8 +49,8 @@ abstract class BaseVerticle<out T : Config>(private val configClass: Class<T>) :
         this.config = configFactory.create(SubstitutingConfigSource(configJson, substitutor))
     }
 
-    fun <T> registerEventBusCodec(clazz: Class<T>) {
-        vertx.eventBus().registerDefaultCodec(clazz, JacksonMessageCodec(clazz))
+    fun <T: Any> registerEventBusCodec(clazz: KClass<T>) {
+        vertx.eventBus().registerDefaultCodec(clazz.java, JacksonMessageCodec(clazz))
     }
 
     @Throws(Exception::class)

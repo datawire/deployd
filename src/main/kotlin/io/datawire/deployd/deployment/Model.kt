@@ -1,10 +1,11 @@
 package io.datawire.deployd.deployment
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.util.*
 
 data class DeploymentRequest(@JsonProperty val service: String)
 
-data class Deployment(@JsonProperty val id: String,
+data class Deployment(@JsonProperty val id: UUID = UUID.randomUUID(),
                       @JsonProperty val service: String,
                       @JsonProperty val status: DeploymentStatus)
 

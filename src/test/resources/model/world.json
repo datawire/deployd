@@ -1,0 +1,14 @@
+{
+  "name": "test",
+
+  "amazon": {
+    "accessKey": null,
+    "secretKey": null,
+    "region": "us-east-1",
+
+    "network": {
+      "id": null,
+      "subnets": []
+    }
+  }
+}

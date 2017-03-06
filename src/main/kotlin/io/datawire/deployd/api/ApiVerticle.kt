@@ -1,7 +1,10 @@
 package io.datawire.deployd.api
 
 import io.datawire.deployd.ApiConfig
-import io.datawire.deployd.deployment.DeploymentApi
+import io.datawire.deployd.deployment.DeploymentsApi
+import io.datawire.deployd.deployment.ServicesApi
+import io.datawire.deployd.deployment.WorldsApi
+import io.datawire.deployd.world.WorldRepository
 import io.datawire.vertx.BaseVerticle
 import io.datawire.vertx.VerticleDeployer
 import io.vertx.core.AsyncResult
@@ -9,11 +12,14 @@ import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.kotlin.core.DeploymentOptions
 import io.vertx.kotlin.core.json.get
 
 
 class ApiVerticle : BaseVerticle<ApiConfig>(ApiConfig::class), Api {
+
+    private val worlds by lazy { WorldRepository.load(vertx, "") }
 
     override fun start(startFuture: Future<Void>?) {
         logger.info("API starting (address: {}:{})", config().server.host, config().server.port)
@@ -27,6 +33,7 @@ class ApiVerticle : BaseVerticle<ApiConfig>(ApiConfig::class), Api {
 
     override fun start() {
         val router = Router.router(vertx)
+        router.route().handler(BodyHandler.create())
 
         // We're not serving a Favicon so we will not respond with one. Issues a 403 Forbidden.
         router.get("/favicon.ico").handler {
@@ -55,7 +62,9 @@ class ApiVerticle : BaseVerticle<ApiConfig>(ApiConfig::class), Api {
     }
 
     override fun configure(router: Router) {
-        DeploymentApi().configure(router)
+        WorldsApi.configure(router)
+        DeploymentsApi().configure(router)
+        //ServicesApi().configure(router)
     }
 
     object Deployer : VerticleDeployer() {

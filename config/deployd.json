@@ -1,5 +1,9 @@
 {
   "api": {
     "port": 5000
+  },
+
+  "workspace": {
+    "path": ".deployd"
   }
 }
