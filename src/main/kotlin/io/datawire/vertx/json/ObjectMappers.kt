@@ -16,16 +16,14 @@
 
 package io.datawire.vertx.json
 
-import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.ser.std.StdSerializer
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonArray
@@ -39,6 +37,11 @@ import io.vertx.core.json.JsonObject
 
 
 object ObjectMappers {
+
+    /**
+     * YAML mapper that has support for Kotlin.
+     */
+    val yamlMapper: ObjectMapper by lazy { configure(ObjectMapper(YAMLFactory())) }
 
     /**
      * JSON mapper that has support for Kotlin.
