@@ -23,7 +23,6 @@ interface Api {
 
     fun <T: Any> collectionResult(name: String, items: Collection<T>): String {
         val res = ObjectMappers.prettyMapper.writeValueAsString(Results(name, items))
-        println(res)
         return res
     }
 }

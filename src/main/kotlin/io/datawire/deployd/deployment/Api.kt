@@ -76,31 +76,6 @@ object WorldsApi : Api {
 }
 
 
-class ServicesApi : Api {
-
-    override fun configure(router: Router) {
-        with(router.post("/services")) {
-            consumes("application/json")
-            produces("application/json")
-            handler(this@ServicesApi::addService)
-        }
-
-        with(router.get("/services/:id")) {
-            produces("application/json")
-            handler(this@ServicesApi::getService)
-        }
-    }
-
-    private fun addService(ctx: RoutingContext) {
-        ctx.next()
-    }
-
-    private fun getService(ctx: RoutingContext) {
-        ctx.next()
-    }
-}
-
-
 class DeploymentsApi : Api {
 
     override fun configure(router: Router) {

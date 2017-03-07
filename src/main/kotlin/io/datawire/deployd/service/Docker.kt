@@ -1,8 +1,10 @@
 package io.datawire.deployd.service
 
+import com.fasterxml.jackson.annotation.JacksonInject
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import io.datawire.deployd.deployment.DeploymentRequest
 import java.net.URI
 
 
@@ -16,15 +18,15 @@ data class DockerImage(@JsonProperty val registry: URI,
         JsonSubTypes.Type(value = QueryDockerTagResolver::class,    name = "queried")
 )
 interface DockerTagResolver {
-    fun resolve(): String
+    fun resolve(request: DeploymentRequest): String
 }
 
-data class ProvidedDockerTagResolver(@JsonProperty val tag: String) : DockerTagResolver {
-    override fun resolve() = tag
+data class ProvidedDockerTagResolver(val workaround: String? = null) : DockerTagResolver {
+    override fun resolve(request: DeploymentRequest) = request.dockerTag
 }
 
 data class QueryDockerTagResolver(@JsonProperty val address: URI) : DockerTagResolver {
-    override fun resolve(): String {
+    override fun resolve(request: DeploymentRequest): String {
         throw NotImplementedError()
     }
 }

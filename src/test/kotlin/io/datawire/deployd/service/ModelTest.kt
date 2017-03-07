@@ -1,12 +1,12 @@
 package io.datawire.deployd.service
 
-import io.datawire.deployd.service.*
+import io.datawire.test.BaseTest
 import org.junit.Test
 import org.assertj.core.api.Assertions.*
 import java.net.URI
 
 
-class ModelTest {
+class ModelTest : BaseTest() {
 
   val descriptor = """---
 name: test
@@ -15,15 +15,14 @@ metadata:
   foo: bar
   baz: bot
 
-deployable:
+deploy:
   type: docker
   registry: docker.io
   image: foo/bar
   resolver:
     type: provided
-    tag: 1.0
 
-networking:
+network:
   frontends:
     - name: test1
       type: external
@@ -47,20 +46,20 @@ networking:
 
         assertThat(service.name).isEqualTo("test")
         assertThat(service.metadata).isEqualTo(mapOf("foo" to "bar", "baz" to "bot"))
-        assertThat(service.networking.frontends).containsOnly(
+        assertThat(service.network.frontends).containsOnly(
                 Frontend(name  = "test1",
                          type  = FrontendType.EXTERNAL,
                          ports = listOf(FrontendPort(5000, "be-tcp"), FrontendPort(5001, "be-udp"))))
 
-        assertThat(service.networking.backends).containsOnly(
+        assertThat(service.network.backends).containsOnly(
                 Backend("be-tcp", 5000, PortProtocol.TCP),
                 Backend("be-udp", 5001, PortProtocol.UDP))
 
-        assertThat(service.deployable).isInstanceOf(DockerImage::class.java)
-        val deployable = service.deployable as DockerImage
+        assertThat(service.deploy).isInstanceOf(DockerImage::class.java)
+        val deployable = service.deploy as DockerImage
 
         assertThat(deployable.registry).isEqualTo(URI.create("docker.io"))
         assertThat(deployable.image).isEqualTo("foo/bar")
-        assertThat(deployable.resolver).isEqualTo(ProvidedDockerTagResolver("1.0"))
+        assertThat(deployable.resolver).isEqualTo(ProvidedDockerTagResolver())
     }
 }

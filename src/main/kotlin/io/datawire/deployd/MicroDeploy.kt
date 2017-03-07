@@ -1,14 +1,13 @@
 package io.datawire.deployd
 
 import io.datawire.deployd.api.ApiVerticle
-import io.datawire.deployd.world.AwsProvider
+import io.datawire.deployd.service.Service
 import io.datawire.deployd.world.World
-import io.datawire.deployd.world.WorldRepository
 import io.datawire.vertx.BaseVerticle
 import io.vertx.core.Future
 
 
-class Deployd : BaseVerticle<DeploydConfig>(DeploydConfig::class) {
+class MicroDeploy : BaseVerticle<DeploydConfig>(DeploydConfig::class) {
 
     override fun start(startFuture: Future<Void>?) {
         if (!vertx.fileSystem().existsBlocking(config().workspace.path.toString())) {
@@ -22,9 +21,9 @@ class Deployd : BaseVerticle<DeploydConfig>(DeploydConfig::class) {
     }
 
     override fun stop(stopFuture: Future<Void>?) {
-        WorldRepository
-                .load(vertx, ".deployd/worlds.json")
-                .save(vertx, ".deployd/worlds.json")
+
+        WorldRepo.getInstance<World>(vertx, "worlds").store(vertx, ".deployd/worlds.json")
+        ServiceRepo.getInstance<Service>(vertx, "service").store(vertx, ".deployd/services.json")
 
         stopFuture?.complete()
         stop()

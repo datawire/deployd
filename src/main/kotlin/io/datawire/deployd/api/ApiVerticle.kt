@@ -2,9 +2,8 @@ package io.datawire.deployd.api
 
 import io.datawire.deployd.ApiConfig
 import io.datawire.deployd.deployment.DeploymentsApi
-import io.datawire.deployd.deployment.ServicesApi
 import io.datawire.deployd.deployment.WorldsApi
-import io.datawire.deployd.world.WorldRepository
+import io.datawire.deployd.service.ServicesApi
 import io.datawire.vertx.BaseVerticle
 import io.datawire.vertx.VerticleDeployer
 import io.vertx.core.AsyncResult
@@ -19,8 +18,6 @@ import io.vertx.kotlin.core.json.get
 
 class ApiVerticle : BaseVerticle<ApiConfig>(ApiConfig::class), Api {
 
-    private val worlds by lazy { WorldRepository.load(vertx, "") }
-
     override fun start(startFuture: Future<Void>?) {
         logger.info("API starting (address: {}:{})", config().server.host, config().server.port)
         super.start(startFuture)
@@ -34,6 +31,14 @@ class ApiVerticle : BaseVerticle<ApiConfig>(ApiConfig::class), Api {
     override fun start() {
         val router = Router.router(vertx)
         router.route().handler(BodyHandler.create())
+        router.route().handler({
+            println("""${it.request().method()} ${it.request().path()}
+${it.request().headers().toList()}
+
+
+""")
+            it.next()
+        })
 
         // We're not serving a Favicon so we will not respond with one. Issues a 403 Forbidden.
         router.get("/favicon.ico").handler {
@@ -64,7 +69,7 @@ class ApiVerticle : BaseVerticle<ApiConfig>(ApiConfig::class), Api {
     override fun configure(router: Router) {
         WorldsApi.configure(router)
         DeploymentsApi().configure(router)
-        //ServicesApi().configure(router)
+        ServicesApi.configure(router)
     }
 
     object Deployer : VerticleDeployer() {

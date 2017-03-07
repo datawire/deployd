@@ -4,7 +4,7 @@ import io.vertx.core.Launcher
 import java.io.FileInputStream
 import java.util.*
 
-private const val MAIN_CLASS = "io.datawire.deployd.Deployd"
+private val MAIN_CLASS = MicroDeploy::class.qualifiedName!!
 
 object Runner {
 
