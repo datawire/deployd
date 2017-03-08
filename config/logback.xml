@@ -19,6 +19,7 @@
         <appender-ref ref="ASYNC_STDOUT" />
     </root>
 
+    <logger name="io.datawire" level="DEBUG" />
     <logger name="io.netty" level="WARN" />
     <logger name="com.hazelcast.cluster" level="INFO" />
     <logger name="com.hazelcast.system" level="WARN" />

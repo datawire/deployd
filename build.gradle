@@ -30,7 +30,7 @@ ext {
   jacksonVersion     = '2.8.6'
   junitVersion       = '4.12'
   logbackVersion     = '1.1.7'
-  vertxVersion       = '3.4.0.Beta1'
+  vertxVersion       = '3.4.0'
 }
 
 apply plugin: 'kotlin'

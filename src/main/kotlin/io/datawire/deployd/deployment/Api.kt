@@ -1,11 +1,15 @@
 package io.datawire.deployd.deployment
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.datawire.deployd.LocalMapServiceRepo
+import io.datawire.deployd.LocalMapWorldRepo
 import io.datawire.deployd.api.Api
+import io.datawire.deployd.api.fromJson
 import io.datawire.deployd.world.World
-import io.datawire.deployd.world.WorldRepository
 import io.datawire.vertx.json.ObjectMappers
+import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.http.HttpHeaders
+import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 
@@ -34,9 +38,9 @@ object WorldsApi : Api {
         val resp = ctx.response()
 
         val world = ObjectMappers.mapper.readValue<World>(ctx.bodyAsString)
-        val worldRepo = WorldRepository.load(ctx.vertx(), ".deployd/worlds.json")
+        val worldRepo = LocalMapWorldRepo.get(ctx.vertx())
 
-        worldRepo.addWorld(world)
+        worldRepo.add(world.name, world)
 
         resp.apply {
             statusCode = 204
@@ -47,8 +51,8 @@ object WorldsApi : Api {
     private fun getWorld(ctx: RoutingContext) {
         val resp = ctx.response()
 
-        val worldRepo = WorldRepository.load(ctx.vertx(), ".deployd/worlds.json")
-        val world = worldRepo.getWorld(ctx.pathParam("name"))
+        val worldRepo = LocalMapWorldRepo.get(ctx.vertx())
+        val world = worldRepo.get(ctx.pathParam("name"))
 
         if (world != null) {
             resp.setStatusCode(200)
@@ -62,8 +66,8 @@ object WorldsApi : Api {
     private fun getWorlds(ctx: RoutingContext) {
         val resp = ctx.response()
 
-        val worldRepo = WorldRepository.load(ctx.vertx(), ".deployd/worlds.json")
-        val worlds = worldRepo.getWorlds().map {
+        val worldRepo = LocalMapWorldRepo.get(ctx.vertx())
+        val worlds = worldRepo.getAll().map {
             it.copy(amazon = it.amazon.copy(secretKey = null))
         }
 
@@ -77,6 +81,8 @@ object WorldsApi : Api {
 
 
 class DeploymentsApi : Api {
+
+    private val logger = LoggerFactory.getLogger(DeploymentsApi::class.java)
 
     override fun configure(router: Router) {
         with(router.post("/deployments")) {
@@ -110,7 +116,19 @@ class DeploymentsApi : Api {
     }
 
     private fun addDeployment(ctx: RoutingContext) {
-        ctx.next()
+        val deployRequest = fromJson<DeploymentRequest>(ctx.bodyAsString)
+        val svcRepo = LocalMapServiceRepo.get(ctx.vertx())
+
+        val service = svcRepo.get(deployRequest.service)
+
+        service?.let {
+
+            val deployCtx = DeploymentContext(it, deployRequest)
+
+            ctx.vertx().eventBus().send("deploy.DeploymentRequest", deployCtx)
+            ctx.response().setStatusCode(HttpResponseStatus.ACCEPTED.code()).end()
+
+        } ?: ctx.fail(404)
     }
 
     private fun cancelDeployment(ctx: RoutingContext) {

@@ -1,8 +1,7 @@
 package io.datawire.deployd
 
 import io.datawire.deployd.api.ApiVerticle
-import io.datawire.deployd.service.Service
-import io.datawire.deployd.world.World
+import io.datawire.deployd.deployment.DeploymentVerticle
 import io.datawire.vertx.BaseVerticle
 import io.vertx.core.Future
 
@@ -14,7 +13,8 @@ class MicroDeploy : BaseVerticle<DeploydConfig>(DeploydConfig::class) {
             vertx.fileSystem().mkdirBlocking(config().workspace.path.toString())
         }
 
-        ApiVerticle.Deployer.deployRequired(vertx, originalConfig())
+        ApiVerticle.deployRequired(vertx, originalConfig())
+        DeploymentVerticle.deployRequired(vertx, originalConfig())
 
         startFuture?.complete()
         start()
@@ -22,8 +22,8 @@ class MicroDeploy : BaseVerticle<DeploydConfig>(DeploydConfig::class) {
 
     override fun stop(stopFuture: Future<Void>?) {
 
-        WorldRepo.getInstance<World>(vertx, "worlds").store(vertx, ".deployd/worlds.json")
-        ServiceRepo.getInstance<Service>(vertx, "service").store(vertx, ".deployd/services.json")
+        LocalMapWorldRepo.get(vertx).save(vertx.fileSystem())
+        LocalMapServiceRepo.get(vertx).save(vertx.fileSystem())
 
         stopFuture?.complete()
         stop()

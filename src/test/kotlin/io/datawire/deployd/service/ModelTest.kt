@@ -62,4 +62,21 @@ network:
         assertThat(deployable.image).isEqualTo("foo/bar")
         assertThat(deployable.resolver).isEqualTo(ProvidedDockerTagResolver())
     }
+
+    @Test
+    fun checkFrontendToBackendPortMapping_NoExceptionIfBackendsPresent() {
+        val service = loadServiceDescriptor(descriptor)
+        checkFrontendToBackendPortMapping(service.network.frontends.first(), service.network.backends)
+    }
+
+    @Test
+    fun checkFrontendToBackendPortMapping_ExceptionIfBackendDoesNotExist() {
+        val service  = loadServiceDescriptor(descriptor)
+        val frontend = service.network.frontends.first()
+        val frontendWithMissingBackend = frontend.copy(ports = frontend.ports + FrontendPort(9001, "be-not-present"))
+
+        assertThatExceptionOfType(IllegalStateException::class.java)
+                .isThrownBy { checkFrontendToBackendPortMapping(frontendWithMissingBackend, service.network.backends) }
+                .withMessage("Frontend['test1'].port[9001] is mapped to an unknown or missing backend['be-not-present']")
+    }
 }

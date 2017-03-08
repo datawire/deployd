@@ -72,7 +72,7 @@ ${it.request().headers().toList()}
         ServicesApi.configure(router)
     }
 
-    object Deployer : VerticleDeployer() {
+    companion object : VerticleDeployer() {
         override fun deploy(vertx: Vertx, config: JsonObject, result: (AsyncResult<String>) -> Unit) {
             val deployOptions = DeploymentOptions(config = config["api"])
             vertx.deployVerticle(ApiVerticle::class.qualifiedName, deployOptions, result)

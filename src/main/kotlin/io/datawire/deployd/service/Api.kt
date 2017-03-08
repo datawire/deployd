@@ -1,9 +1,9 @@
 package io.datawire.deployd.service
 
-import com.fasterxml.jackson.module.kotlin.readValue
-import io.datawire.deployd.ServiceRepo
+import io.datawire.deployd.LocalMapServiceRepo
 import io.datawire.deployd.api.Api
-import io.datawire.vertx.json.ObjectMappers
+import io.datawire.deployd.api.fromJson
+import io.datawire.deployd.api.fromYaml
 import io.vertx.core.http.HttpHeaders
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
@@ -13,8 +13,13 @@ object ServicesApi : Api {
     override fun configure(router: Router) {
         with(router.post("/services")) {
             consumes("application/json")
+            consumes("application/yaml")
             produces("application/json")
             handler(this@ServicesApi::addService)
+        }
+
+        with(router.post("/services/:name/deploy")) {
+            handler({ it.reroute("/deployments/${it.pathParam("name")}") })
         }
 
         with(router.get("/services/:id")) {
@@ -28,13 +33,29 @@ object ServicesApi : Api {
         }
     }
 
+    private fun validate(service: Service) {
+        for (fe in service.network.frontends) {
+            checkFrontendToBackendPortMapping(fe, service.network.backends)
+        }
+    }
+
     private fun addService(ctx: RoutingContext) {
+        val req  = ctx.request()
         val resp = ctx.response()
 
-        val service = ObjectMappers.mapper.readValue<Service>(ctx.bodyAsString)
-        val serviceRepo = ServiceRepo.getInstance<Service>(ctx.vertx(), "services.json")
+        val service = when(req.getHeader(HttpHeaders.CONTENT_TYPE)) {
+            "application/json" -> fromJson<Service>(ctx.bodyAsString)
+            "application/yaml" -> fromYaml(ctx.bodyAsString)
+            else -> throw RuntimeException("Unknown Content-Type: ${req.getHeader(HttpHeaders.CONTENT_TYPE)}")
+        }
 
-        serviceRepo.add(service)
+        val serviceRepo = LocalMapServiceRepo.get(ctx.vertx())
+        serviceRepo.add(service.name, service)
+
+        // TODO: this will need to throw a better exception type that can be mapped to an API error
+        validate(service)
+
+        ctx.vertx().eventBus().send("deploy.ServiceSetup", service)
 
         resp.apply {
             statusCode = 200
@@ -46,7 +67,7 @@ object ServicesApi : Api {
     private fun getService(ctx: RoutingContext) {
         val resp = ctx.response()
 
-        val serviceRepo = ServiceRepo.getInstance<Service>(ctx.vertx(), "services.json")
+        val serviceRepo = LocalMapServiceRepo.get(ctx.vertx())
         val service = serviceRepo.get(ctx.pathParam("name"))
 
         if (service != null) {
@@ -61,7 +82,7 @@ object ServicesApi : Api {
     private fun getServices(ctx: RoutingContext) {
         val resp = ctx.response()
 
-        val serviceRepo = ServiceRepo.getInstance<Service>(ctx.vertx(), "services.json")
+        val serviceRepo = LocalMapServiceRepo.get(ctx.vertx())
         val services = serviceRepo.getAll()
 
         resp.apply {
