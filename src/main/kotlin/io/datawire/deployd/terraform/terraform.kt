@@ -1,15 +1,14 @@
 package io.datawire.deployd.terraform
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.datawire.deployd.service.Service
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.stream.Collectors
-import java.io.InputStreamReader
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStream
-import java.nio.file.Paths
 
+
+data class TerraformInOutMapping(@JsonProperty val inputs: Map<String, String>,
+                                 @JsonProperty val outputs: Map<String, String>)
 
 sealed class TerraformPlanResult(val statusCode: Int)
 
@@ -17,6 +16,10 @@ data class SucceededWithoutDifferences(val workspace: Path, val plan: Path) : Te
 data class SucceededWithDifferences(val workspace: Path, val plan: Path)    : TerraformPlanResult(2)
 
 object Failed : TerraformPlanResult(1)
+
+fun provisionBackingServices(service: Service) {
+
+}
 
 //fun terraformPrepare(workspace: Path) {
 //

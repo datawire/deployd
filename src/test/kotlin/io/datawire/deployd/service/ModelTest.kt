@@ -38,6 +38,13 @@ network:
     - name: be-udp
       protocol: udp
       port: 5001
+
+requires:
+  - name: foobar
+    type: terraform
+    module: postgresql-v96
+    params:
+      disk_capacity_gb: 100
 """
 
     @Test
@@ -61,6 +68,8 @@ network:
         assertThat(deployable.registry).isEqualTo(URI.create("docker.io"))
         assertThat(deployable.image).isEqualTo("foo/bar")
         assertThat(deployable.resolver).isEqualTo(ProvidedDockerTagResolver())
+
+        assertThat(service.requires).isEqualTo(listOf(TerraformRequirement("foobar", "postgresql-v96", mapOf("disk_capacity_gb" to 100))))
     }
 
     @Test

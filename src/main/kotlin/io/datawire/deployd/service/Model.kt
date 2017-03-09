@@ -9,6 +9,15 @@ import io.vertx.core.shareddata.Shareable
 
 typealias Metadata = Map<String, String>
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+        JsonSubTypes.Type(value = TerraformRequirement::class, name = "terraform")  // TODO: investigate how Jackson does type mapping as there is a tight coupling here.
+)
+abstract class Requirement
+
+data class TerraformRequirement(@JsonProperty val name: String,
+                                @JsonProperty val module: String,
+                                @JsonProperty val params: Map<String, *>) : Requirement()
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
@@ -52,7 +61,8 @@ data class Frontend(@JsonProperty val name: String,
 data class Service(@JsonProperty val name: String,
                    @JsonProperty val metadata: Metadata = emptyMap(),
                    @JsonProperty val deploy: Deployable,
-                   @JsonProperty val network: Network) : Shareable
+                   @JsonProperty val network: Network,
+                   @JsonProperty val requires: List<Requirement> = emptyList()) : Shareable
 
 fun loadServiceDescriptor(text: String) = ObjectMappers.yamlMapper.readValue<Service>(text)
 
