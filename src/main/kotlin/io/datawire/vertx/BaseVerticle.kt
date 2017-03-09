@@ -11,6 +11,7 @@ import io.vertx.core.Context
 import io.vertx.core.Future
 import io.vertx.core.Verticle
 import io.vertx.core.Vertx
+import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.Logger
 import io.vertx.core.logging.LoggerFactory
@@ -19,6 +20,13 @@ import kotlin.reflect.KClass
 
 
 abstract class BaseVerticle<out T : Config>(private val configClass: Class<T>) : Verticle {
+
+    private companion object {
+        init {
+            ObjectMappers.configure(Json.mapper)
+            ObjectMappers.configure(Json.prettyMapper)
+        }
+    }
 
     constructor(configClass: KClass<T>) : this(configClass.java)
 
@@ -45,7 +53,7 @@ abstract class BaseVerticle<out T : Config>(private val configClass: Class<T>) :
 
         val configJson = StringConfigSource(this.context.config().encodePrettily())
         val substitutor = StrSubstitutor(VariableLookup(true))
-        val configFactory = ConfigFactory(ObjectMappers.prettyMapper, configClass)
+        val configFactory = ConfigFactory(Json.prettyMapper, configClass)
         this.config = configFactory.create(SubstitutingConfigSource(configJson, substitutor))
     }
 

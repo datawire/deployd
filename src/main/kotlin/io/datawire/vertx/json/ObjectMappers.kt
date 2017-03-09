@@ -58,7 +58,7 @@ object ObjectMappers {
      *
      * @return the [ObjectMapper] that was passed but configured with required functionality.
      */
-    private fun configure(mapper: ObjectMapper): ObjectMapper {
+    fun configure(mapper: ObjectMapper): ObjectMapper {
         return mapper.apply {
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 

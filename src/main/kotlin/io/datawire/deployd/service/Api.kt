@@ -1,6 +1,5 @@
 package io.datawire.deployd.service
 
-import io.datawire.deployd.LocalMapServiceRepo
 import io.datawire.deployd.api.Api
 import io.datawire.deployd.api.fromJson
 import io.datawire.deployd.api.fromYaml
@@ -22,7 +21,7 @@ object ServicesApi : Api {
             handler({ it.reroute("/deployments/${it.pathParam("name")}") })
         }
 
-        with(router.get("/services/:id")) {
+        with(router.get("/services/:name")) {
             produces("application/json")
             handler(this@ServicesApi::getService)
         }
@@ -49,8 +48,8 @@ object ServicesApi : Api {
             else -> throw RuntimeException("Unknown Content-Type: ${req.getHeader(HttpHeaders.CONTENT_TYPE)}")
         }
 
-        val serviceRepo = LocalMapServiceRepo.get(ctx.vertx())
-        serviceRepo.add(service.name, service)
+        val serviceRepo = FileSystemServiceRepo(ctx.vertx()) //LocalMapServiceRepo.get(ctx.vertx())
+        serviceRepo.addService(service)
 
         // TODO: this will need to throw a better exception type that can be mapped to an API error
         validate(service)
@@ -67,8 +66,8 @@ object ServicesApi : Api {
     private fun getService(ctx: RoutingContext) {
         val resp = ctx.response()
 
-        val serviceRepo = LocalMapServiceRepo.get(ctx.vertx())
-        val service = serviceRepo.get(ctx.pathParam("name"))
+        val serviceRepo = FileSystemServiceRepo(ctx.vertx()) //LocalMapServiceRepo.get(ctx.vertx())
+        val service = serviceRepo.getService(ctx.pathParam("name"))
 
         if (service != null) {
             resp.setStatusCode(200)
@@ -82,8 +81,8 @@ object ServicesApi : Api {
     private fun getServices(ctx: RoutingContext) {
         val resp = ctx.response()
 
-        val serviceRepo = LocalMapServiceRepo.get(ctx.vertx())
-        val services = serviceRepo.getAll()
+        val serviceRepo = FileSystemServiceRepo(ctx.vertx()) //LocalMapServiceRepo.get(ctx.vertx())
+        val services = serviceRepo.getServices()
 
         resp.apply {
             statusCode = 200

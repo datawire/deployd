@@ -33,7 +33,10 @@ data class ApiConfig(
         val server: ServerConfig = ServerConfig(port = 52689, host = "0.0.0.0")) : Config
 
 
-data class WorkspaceConfig(@JsonProperty("path") val path: Path)
+data class WorkspaceConfig(@JsonProperty("path") val path: Path) {
+
+        val servicesPath get() = path.resolve("services")
+}
 
 data class DeploydConfig(@JsonProperty val api: ApiConfig,
                          @JsonProperty val workspace: WorkspaceConfig) : Config
