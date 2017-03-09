@@ -31,7 +31,6 @@ class MicroDeploy : BaseVerticle<DeploydConfig>(DeploydConfig::class) {
     override fun stop(stopFuture: Future<Void>?) {
 
         LocalMapWorldRepo.get(vertx).save(vertx.fileSystem())
-        LocalMapServiceRepo.get(vertx).save(vertx.fileSystem())
 
         stopFuture?.complete()
         stop()

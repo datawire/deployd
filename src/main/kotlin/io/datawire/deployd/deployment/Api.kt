@@ -1,12 +1,11 @@
 package io.datawire.deployd.deployment
 
-import com.fasterxml.jackson.module.kotlin.readValue
-import io.datawire.deployd.LocalMapServiceRepo
-import io.datawire.deployd.LocalMapWorldRepo
 import io.datawire.deployd.api.Api
 import io.datawire.deployd.api.fromJson
+import io.datawire.deployd.service.FileSystemServiceRepo
 import io.datawire.deployd.world.World
-import io.datawire.vertx.json.ObjectMappers
+import io.datawire.deployd.world.loadWorld
+import io.datawire.deployd.world.writeWorld
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.http.HttpHeaders
 import io.vertx.core.logging.LoggerFactory
@@ -17,30 +16,23 @@ import io.vertx.ext.web.RoutingContext
 object WorldsApi : Api {
 
     override fun configure(router: Router) {
-        with(router.post("/worlds")) {
+        with(router.post("/world")) {
             consumes("application/json")
             produces("application/json")
             handler(this@WorldsApi::addWorld)
         }
 
-        with(router.get("/worlds/:name")) {
+        with(router.get("/world")) {
             produces("application/json")
             handler(this@WorldsApi::getWorld)
-        }
-
-        with(router.get("/worlds")) {
-            produces("application/json")
-            handler(this@WorldsApi::getWorlds)
         }
     }
 
     private fun addWorld(ctx: RoutingContext) {
         val resp = ctx.response()
 
-        val world = ObjectMappers.mapper.readValue<World>(ctx.bodyAsString)
-        val worldRepo = LocalMapWorldRepo.get(ctx.vertx())
-
-        worldRepo.add(world.name, world)
+        val world = ctx.bodyAsJson.mapTo(World::class.java)
+        writeWorld(ctx.vertx(), world)
 
         resp.apply {
             statusCode = 204
@@ -51,8 +43,7 @@ object WorldsApi : Api {
     private fun getWorld(ctx: RoutingContext) {
         val resp = ctx.response()
 
-        val worldRepo = LocalMapWorldRepo.get(ctx.vertx())
-        val world = worldRepo.get(ctx.pathParam("name"))
+        val world = loadWorld(ctx.vertx())
 
         if (world != null) {
             resp.setStatusCode(200)
@@ -60,21 +51,6 @@ object WorldsApi : Api {
                     .end(result(world.copy(amazon = world.amazon.copy(secretKey = null))))
         } else {
             resp.setStatusCode(404).end()
-        }
-    }
-
-    private fun getWorlds(ctx: RoutingContext) {
-        val resp = ctx.response()
-
-        val worldRepo = LocalMapWorldRepo.get(ctx.vertx())
-        val worlds = worldRepo.getAll().map {
-            it.copy(amazon = it.amazon.copy(secretKey = null))
-        }
-
-        resp.apply {
-            statusCode = 200
-            putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-            end(collectionResult("worlds", worlds))
         }
     }
 }
@@ -117,9 +93,8 @@ class DeploymentsApi : Api {
 
     private fun addDeployment(ctx: RoutingContext) {
         val deployRequest = fromJson<DeploymentRequest>(ctx.bodyAsString)
-        val svcRepo = LocalMapServiceRepo.get(ctx.vertx())
-
-        val service = svcRepo.get(deployRequest.service)
+        val svcRepo = FileSystemServiceRepo(ctx.vertx())
+        val service = svcRepo.getService(deployRequest.service)
 
         service?.let {
 

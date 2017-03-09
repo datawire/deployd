@@ -17,9 +17,18 @@ object Workspace {
         createDirectories(vertx, config.path.resolve("services").toString())
     }
 
+    fun path(vertx: Vertx): String {
+        val config = getConfig(vertx)
+        return config.path.toString()
+    }
+
     fun contains(vertx: Vertx, path: String) = vertx.fileSystem().existsBlocking(path)
 
-    fun readFile(vertx: Vertx, path: String): Buffer = vertx.fileSystem().readFileBlocking(path)
+    fun readFile(vertx: Vertx, path: String): Buffer {
+        val config = getConfig(vertx)
+        val readFrom = config.path.resolve(path).toString()
+        return vertx.fileSystem().readFileBlocking(readFrom)
+    }
 
     private fun getConfig(vertx: Vertx): WorkspaceConfig {
         val configMap = vertx.sharedData().getLocalMap<String, JsonObject>("md.config")

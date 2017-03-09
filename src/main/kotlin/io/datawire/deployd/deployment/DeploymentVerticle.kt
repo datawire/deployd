@@ -1,7 +1,11 @@
 package io.datawire.deployd.deployment
 
 import io.datawire.deployd.kubernetes.KubernetesManager
+import io.datawire.deployd.persistence.Workspace
 import io.datawire.deployd.service.Service
+import io.datawire.deployd.terraform.RemoteParameters
+import io.datawire.deployd.terraform.terraformSetup
+import io.datawire.deployd.world.loadWorld
 import io.datawire.vertx.BaseVerticle
 import io.datawire.vertx.VerticleDeployer
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
@@ -11,6 +15,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.DeploymentOptions
+import java.nio.file.Paths
 
 
 class DeploymentVerticle : BaseVerticle<DeploymentConfig>(DeploymentConfig::class) {
@@ -49,7 +54,13 @@ class DeploymentVerticle : BaseVerticle<DeploymentConfig>(DeploymentConfig::clas
     }
 
     private fun handleService(msg: Message<Service>) {
-        logger.debug("foop")
+        val world = loadWorld(vertx)
+        val servicePath = Workspace.path(vertx)
+        terraformSetup(
+                Paths.get(servicePath).resolve("services/${msg.body().name}"),
+                msg.body().name,
+                RemoteParameters(world.amazon))
+
         val km  = KubernetesManager(DefaultKubernetesClient())
         val ctx = DeploymentContext(msg.body(), null)
         km.apply(ctx)

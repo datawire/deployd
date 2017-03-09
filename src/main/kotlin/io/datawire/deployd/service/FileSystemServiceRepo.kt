@@ -15,6 +15,7 @@ class FileSystemServiceRepo(private val vertx: Vertx) {
             Workspace.createDirectories(vertx, "$pathPrefix/${service.name}")
             writeDescriptor(service)
             Workspace.writeFile(vertx, "$pathPrefix/${service.name}/terraform.tfvars.json", Buffer.buffer("{ }"))
+
         } else {
             throw IllegalStateException("Service['${service.name}'] already exists!")
         }

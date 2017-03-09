@@ -2,7 +2,10 @@ package io.datawire.deployd.terraform
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.datawire.deployd.service.Service
+import io.datawire.deployd.world.AwsProvider
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
@@ -17,21 +20,33 @@ data class SucceededWithDifferences(val workspace: Path, val plan: Path)    : Te
 
 object Failed : TerraformPlanResult(1)
 
-fun provisionBackingServices(service: Service) {
+data class RemoteParameters(val s3Bucket: String,
+                            val s3Region: String) {
 
+    constructor(provider: AwsProvider): this(provider.s3StateStore, provider.region)
 }
 
-//fun terraformPrepare(workspace: Path) {
-//
-//}
-//
-//fun terraformOutput(workspace: Path): Map<String, String> {
-//    val command = listOf("terraform", "output")
-//    val options = listOf("-json")
-//
-//    val fullCommand = (command + options)
-//    val res = execute(planResult.workspace, fullCommand)
-//}
+fun terraformSetup(workspace: Path, service: String, remote: RemoteParameters) {
+    val command = listOf("/home/plombardi/bin/terraform", "remote", "config")
+    val options = listOf(
+            "-backend=s3",
+            "-backend-config=bucket=${remote.s3Bucket}",
+            "-backend-config=key=$service.tfstate",
+            "-backend-config=region=${remote.s3Region}")
+
+    val fullCommand = (command + options)
+    val (res, data) = execute(workspace, fullCommand)
+
+    println(res)
+    println(data)
+
+    if (res != 0) {
+        throw RuntimeException("""Failed `terraform remote config` (result: $res)
+
+Full command = '$fullCommand'
+""")
+    }
+}
 
 fun terraformApply(planResult: SucceededWithDifferences) {
     val command = listOf("terraform", "apply")
@@ -49,7 +64,7 @@ Full command = '$fullCommand'
 }
 
 fun terraformPlan(workspace: Path, variablesFile: Path, destroy: Boolean = false): TerraformPlanResult {
-    val planPath = workspace.resolve(workspace)
+    val planPath = workspace.resolve("plan.out")
     val command = listOf("terraform", "plan")
     val options = listOf("-no-color", "-var-file=$variablesFile", "-detailed-exitcode", "-out=$planPath")
 
@@ -71,7 +86,6 @@ Full command = '$fullCommand'
 }
 
 private fun execute(workingDirectory: Path, args: List<String>): Pair<Int, String?> {
-
     val pb = ProcessBuilder().apply {
         directory(workingDirectory.toFile())
         command(args)
@@ -85,9 +99,13 @@ private fun execute(workingDirectory: Path, args: List<String>): Pair<Int, Strin
     return if (!timedOut) Pair(proc.exitValue(), output) else throw TimeoutException("Timed out on command: `${pb.command()}`")
 }
 
-//fun main(vararg args: String) {
-//    val (res, out) = execute(Paths.get("/home/plombardi"), listOf("terraform", "--help"))
+fun main(vararg args: String) {
+    terraformSetup(Paths.get("hack/scratch"),
+            "foobar",
+            RemoteParameters("foobar", "us-east-1"))
+
+//    val (res, out) = execute(Paths.get("/home/plombardi/datawire/terraform-test"), listOf("terraform", "--help"))
 //
 //    println("Result = $res")
 //    println("Output = $out")
-//}
+}
