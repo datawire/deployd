@@ -1,0 +1,36 @@
+---
+# Name: The name of this fabric
+name: alpha
+
+# Parameters
+# ----------
+#
+# A free-form map of values that is injected into the planning stage of every deployment. This map is
+# particularly useful for providing configuration information, such as, the VPC that backing services should use and
+# which subnets they are allowed to run within.
+#
+# The map is typed to allow for String keys and values of type String, Number, Boolean, List or Map. Deeply nested lists
+# and maps **ARE NOT** supported at this time.
+#
+
+parameters:
+  vpc_id: vpc-9b2a62fe
+  subnets:
+    - subnet-
+    - subnet-
+
+# Amazon
+# ------
+#
+# Configures the Amazon Web Services ("AWS") provider.
+amazon:
+  access_key:
+  secret_key:
+  region: us-east-1
+
+# Terraform
+# ---------
+#
+# Tell Terraform where it should store remote state information.
+terraform:
+  s3_state_bucket: s3://
