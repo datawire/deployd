@@ -33,4 +33,4 @@ amazon:
 #
 # Tell Terraform where it should store remote state information.
 terraform:
-  s3_state_bucket: s3://
+  state_bucket:

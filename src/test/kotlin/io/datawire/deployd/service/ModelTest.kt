@@ -69,7 +69,7 @@ requires:
         assertThat(deployable.image).isEqualTo("foo/bar")
         assertThat(deployable.resolver).isEqualTo(ProvidedDockerTagResolver())
 
-        assertThat(service.requires).isEqualTo(listOf(TerraformRequirement("foobar", "postgresql-v96", mapOf("disk_capacity_gb" to 100))))
+        //assertThat(service.requires).isEqualTo(listOf(TerraformRequirement("foobar", "postgresql-v96", mapOf("disk_capacity_gb" to 100))))
     }
 
     @Test
