@@ -28,10 +28,21 @@ interface Api {
     }
 }
 
+fun <T: Any> result(item: T): String =
+        ObjectMappers.prettyMapper.writeValueAsString(item)
+
+fun <T: Any> collectionResult(name: String, items: Collection<T>): String {
+    val res = ObjectMappers.prettyMapper.writeValueAsString(Results(name, items))
+    return res
+}
+
 inline fun <reified T: Any> Api.fromJson(data: String) = ObjectMappers.mapper.readValue<T>(data)
 
 inline fun <reified T: Any> Api.fromYaml(data: String) = ObjectMappers.yamlMapper.readValue<T>(data)
 
+inline fun <reified T: Any> fromJson(data: String) = ObjectMappers.mapper.readValue<T>(data)
+
+inline fun <reified T: Any> fromYaml(data: String) = ObjectMappers.yamlMapper.readValue<T>(data)
 
 @JsonSerialize(using = ResultsSerializer::class)
 data class Results<out T>(val name: String, val items: Collection<T>)

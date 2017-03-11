@@ -1,8 +1,6 @@
 package io.datawire.deployd.api
 
 import io.datawire.deployd.ApiConfig
-import io.datawire.deployd.deployment.DeploymentsApi
-import io.datawire.deployd.deployment.WorldsApi
 import io.datawire.deployd.service.ServicesApi
 import io.datawire.vertx.BaseVerticle
 import io.datawire.vertx.VerticleDeployer
@@ -67,8 +65,8 @@ ${it.request().headers().toList()}
     }
 
     override fun configure(router: Router) {
-        WorldsApi.configure(router)
-        DeploymentsApi().configure(router)
+        io.datawire.deployd.fabric.configure(router)
+
         ServicesApi.configure(router)
     }
 

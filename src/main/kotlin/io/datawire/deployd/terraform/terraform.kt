@@ -1,9 +1,7 @@
 package io.datawire.deployd.terraform
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import io.datawire.deployd.service.Service
 import io.datawire.deployd.world.AwsProvider
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
@@ -26,7 +24,13 @@ data class RemoteParameters(val s3Bucket: String,
     constructor(provider: AwsProvider): this(provider.s3StateStore, provider.region)
 }
 
+
+fun terraformGenerate(workspace: Path, parameters: Map<String, String>) {
+
+}
+
 fun terraformSetup(workspace: Path, service: String, remote: RemoteParameters) {
+    // TODO: remove the hard path reference
     val command = listOf("/home/plombardi/bin/terraform", "remote", "config")
     val options = listOf(
             "-backend=s3",

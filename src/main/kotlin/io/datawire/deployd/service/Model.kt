@@ -13,11 +13,17 @@ typealias Metadata = Map<String, String>
 @JsonSubTypes(
         JsonSubTypes.Type(value = TerraformRequirement::class, name = "terraform")  // TODO: investigate how Jackson does type mapping as there is a tight coupling here.
 )
-abstract class Requirement
+abstract class Requirement() {
+    abstract val id: String
+    abstract val params: Map<String, *>
+}
 
 data class TerraformRequirement(@JsonProperty val name: String,
-                                @JsonProperty val module: String,
-                                @JsonProperty val params: Map<String, *>) : Requirement()
+                                @JsonProperty val version: Int,
+                                @JsonProperty override val params: Map<String, *>) : Requirement() {
+
+    override val id = "${name.toLowerCase()}-v$version"
+}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(

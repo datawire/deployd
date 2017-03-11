@@ -13,8 +13,12 @@ object Workspace {
         val configMap = vertx.sharedData().getLocalMap<String, JsonObject>("md.config")
         configMap.putIfAbsent("workspace", JsonObject.mapFrom(config))
 
-        createDirectories(vertx, config.path.toString())
-        createDirectories(vertx, config.path.resolve("services").toString())
+        if (!vertx.fileSystem().existsBlocking(config.path.toString())) {
+            vertx.fileSystem().mkdirBlocking(config.path.toString())
+        }
+
+        createDirectories(vertx, Paths.get("services").toString())
+        createDirectories(vertx, Paths.get("modules").toString())
     }
 
     fun path(vertx: Vertx): String {
@@ -22,7 +26,11 @@ object Workspace {
         return config.path.toString()
     }
 
-    fun contains(vertx: Vertx, path: String) = vertx.fileSystem().existsBlocking(path)
+    fun contains(vertx: Vertx, path: String): Boolean {
+        val config = getConfig(vertx)
+        val checkFor = config.path.resolve(path).toString()
+        return vertx.fileSystem().existsBlocking(checkFor)
+    }
 
     fun readFile(vertx: Vertx, path: String): Buffer {
         val config = getConfig(vertx)
@@ -36,6 +44,13 @@ object Workspace {
     }
 
     fun listDirectories(vertx: Vertx, path: String): List<String> {
+        val config = getConfig(vertx)
+        val readFrom = config.path.resolve(path).toString()
+        val dirs = vertx.fileSystem().readDirBlocking(readFrom)
+        return dirs.map { Paths.get(it).fileName.toString() }
+    }
+
+    fun listFiles(vertx: Vertx, path: String): List<String> {
         val config = getConfig(vertx)
         val readFrom = config.path.resolve(path).toString()
         val dirs = vertx.fileSystem().readDirBlocking(readFrom)
@@ -60,8 +75,6 @@ object Workspace {
     fun createDirectories(vertx: Vertx, path: String) {
         val config = getConfig(vertx)
         val create = config.path.resolve(path).toString()
-        println(config)
-        println(create)
         if (!vertx.fileSystem().existsBlocking(create)) {
             vertx.fileSystem().mkdirBlocking(create)
         }
