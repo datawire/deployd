@@ -6,6 +6,8 @@ import io.datawire.deployd.api.fromYaml
 import io.datawire.deployd.world.World
 import io.datawire.deployd.world.writeWorld
 import io.datawire.md.fabric.TfModuleSpec
+import io.datawire.md.fabric.addModule
+import io.datawire.md.fabric.getModules
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.http.HttpHeaders
 import io.vertx.ext.web.Router

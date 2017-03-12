@@ -53,11 +53,14 @@ Full command = '$fullCommand'
 }
 
 fun terraformApply(planResult: SucceededWithDifferences) {
-    val command = listOf("terraform", "apply")
+    val command = listOf("/home/plombardi/bin/terraform", "apply")
     val options = listOf("-no-color")
 
     val fullCommand = (command + options) + planResult.plan.toString()
     val (res, data) = execute(planResult.workspace, fullCommand)
+
+    println(res)
+    println(data)
 
     if (res != 0) {
         throw RuntimeException("""Failed `terraform apply` (result: $res)
@@ -67,10 +70,10 @@ Full command = '$fullCommand'
     }
 }
 
-fun terraformPlan(workspace: Path, variablesFile: Path, destroy: Boolean = false): TerraformPlanResult {
+fun terraformPlan(workspace: Path, variablesFile: Path?, destroy: Boolean = false): TerraformPlanResult {
     val planPath = workspace.resolve("plan.out")
-    val command = listOf("terraform", "plan")
-    val options = listOf("-no-color", "-var-file=$variablesFile", "-detailed-exitcode", "-out=$planPath")
+    val command = listOf("/home/plombardi/bin/terraform", "plan")
+    val options = listOf("-no-color", "-detailed-exitcode", "-out=$planPath")
 
     if (destroy) {
         options + "-destroy"
@@ -78,6 +81,9 @@ fun terraformPlan(workspace: Path, variablesFile: Path, destroy: Boolean = false
 
     val fullCommand = (command + options)
     val (res, data) = execute(workspace, fullCommand)
+
+    println(res)
+    println(data)
 
     return when(res) {
         0    -> SucceededWithoutDifferences(workspace, planPath)
@@ -93,6 +99,7 @@ private fun execute(workingDirectory: Path, args: List<String>): Pair<Int, Strin
     val pb = ProcessBuilder().apply {
         directory(workingDirectory.toFile())
         command(args)
+        environment().put("AWS_DEFAULT_REGION", "us-east-1")
         redirectErrorStream(true)
     }
 

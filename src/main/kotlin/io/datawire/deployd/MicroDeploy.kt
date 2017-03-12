@@ -1,8 +1,8 @@
 package io.datawire.deployd
 
-import io.datawire.deployd.api.ApiVerticle
-import io.datawire.deployd.deployment.DeploymentVerticle
+import io.datawire.md.DeploymentVerticle
 import io.datawire.deployd.persistence.Workspace
+import io.datawire.md.Api
 import io.datawire.vertx.BaseVerticle
 import io.datawire.vertx.json.ObjectMappers
 import io.vertx.core.Future
@@ -16,7 +16,7 @@ class MicroDeploy : BaseVerticle<DeploydConfig>(DeploydConfig::class) {
 
         Workspace.initialize(vertx, config().workspace)
 
-        ApiVerticle.deployRequired(vertx, originalConfig())
+        Api.deployRequired(vertx, originalConfig())
         DeploymentVerticle.deployRequired(vertx, originalConfig())
 
         startFuture?.complete()

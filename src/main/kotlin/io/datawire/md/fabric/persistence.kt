@@ -1,7 +1,10 @@
-package io.datawire.deployd.fabric
+package io.datawire.md.fabric
 
 import io.datawire.deployd.persistence.Workspace
 import io.datawire.md.fabric.TfModuleSpec
+import io.datawire.md.fromYaml
+import io.datawire.md.toBuffer
+import io.datawire.md.toYaml
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
@@ -12,6 +15,21 @@ private val LOGGER = LoggerFactory.getLogger("fabric.persistence")
 
 private val workspacePrefix = "modules/"
 
+
+fun readFabric(vertx: Vertx): FabricSpec? {
+    val fsPath = "fabric.yaml"
+    if (Workspace.contains(vertx, fsPath)) {
+        val data = Workspace.readFile(vertx, fsPath)
+        return fromYaml(data)
+    } else {
+        return null
+    }
+}
+
+fun putFabric(vertx: Vertx, spec: FabricSpec) {
+    val fsPath = "fabric.yaml"
+    Workspace.writeFile(vertx, fsPath, toBuffer(toYaml(spec)))
+}
 
 fun addModule(vertx: Vertx, module: TfModuleSpec): Boolean {
     val file = "$workspacePrefix/${module.id}.json"
@@ -31,7 +49,7 @@ fun getModules(vertx: Vertx): List<TfModuleSpec> {
 }
 
 fun lookupModule(vertx: Vertx, id: String): TfModuleSpec? {
-    val file = "$workspacePrefix/$id.json"
+    val file = "${workspacePrefix}/$id.json"
     return if (Workspace.contains(vertx, file)) {
         Workspace.readFile(vertx, file).toJsonObject().mapTo(TfModuleSpec::class.java)
     } else {
