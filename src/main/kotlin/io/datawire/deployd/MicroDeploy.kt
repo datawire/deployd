@@ -1,6 +1,6 @@
 package io.datawire.deployd
 
-import io.datawire.md.DeploymentVerticle
+import io.datawire.md.deploy.DeploymentVerticle
 import io.datawire.deployd.persistence.Workspace
 import io.datawire.md.Api
 import io.datawire.vertx.BaseVerticle

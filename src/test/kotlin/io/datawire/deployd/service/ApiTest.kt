@@ -38,7 +38,7 @@ class ApiTest : BaseTestUsingVertx() {
     fun registerService_ReturnsHttp200AndServiceJson(ctx: TestContext) {
         val async = ctx.async()
 
-        val service = Service(
+        val service = ServiceSpec(
                 name    = "foobar-service",
                 deploy  = DockerImage(URI.create("foobar.io"), "foo/bar", ProvidedDockerTagResolver()),
                 network = Network(
@@ -60,7 +60,7 @@ class ApiTest : BaseTestUsingVertx() {
 
             resp.bodyHandler { data ->
                 val raw = data.toJsonObject()
-                val returnedSvc = fromJson<Service>(raw)
+                val returnedSvc = fromJson<ServiceSpec>(raw)
 
                 ctx.assertEquals(service, returnedSvc)
 

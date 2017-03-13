@@ -1,6 +1,7 @@
 package io.datawire.deployd.persistence
 
 import io.datawire.deployd.WorkspaceConfig
+import io.datawire.md.toJson
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
@@ -12,6 +13,10 @@ object Workspace {
     fun initialize(vertx: Vertx, config: WorkspaceConfig) {
         val configMap = vertx.sharedData().getLocalMap<String, JsonObject>("md.config")
         configMap.putIfAbsent("workspace", JsonObject.mapFrom(config))
+
+        val configMap2 = vertx.sharedData().getLocalMap<String, String>("deployd.config")
+        configMap2.putIfAbsent("workspace", toJson(config))
+
 
         if (!vertx.fileSystem().existsBlocking(config.path.toString())) {
             vertx.fileSystem().mkdirBlocking(config.path.toString())

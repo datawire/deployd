@@ -76,7 +76,7 @@ class KubernetesManager(private val client: KubernetesClient) {
     private fun create(ctx: DeploymentContext) {
         val k8sNamespace = CreateNamespace(client, ctx.service.name)
 
-        // TODO: kubernetes v1.Service creation needs to be more advanced than this
+        // TODO: kubernetes v1.ServiceSpec creation needs to be more advanced than this
         val k8sService = CreateService(
                 client,
                 ctx.service.name,

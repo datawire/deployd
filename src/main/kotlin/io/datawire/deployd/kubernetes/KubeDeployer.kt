@@ -124,7 +124,7 @@
 //        }
 //      }
 //    } else {
-//      logger.warn("Service is already deployed (org-id: {}, slug: {})",
+//      logger.warn("ServiceSpec is already deployed (org-id: {}, slug: {})",
 //                  deployment.organization.id, deployment.service.slug)
 //    }
 //  }

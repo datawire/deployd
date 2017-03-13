@@ -10,36 +10,36 @@ class FileSystemServiceRepo(private val vertx: Vertx) {
 
     private val pathPrefix = "services/"
 
-    fun addService(service: Service) {
+    fun addService(service: ServiceSpec) {
         if (!exists(service.name)) {
             Workspace.createDirectories(vertx, "$pathPrefix/${service.name}")
             writeDescriptor(service)
             Workspace.writeFile(vertx, "$pathPrefix/${service.name}/terraform.tfvars.json", Buffer.buffer("{ }"))
 
         } else {
-            throw IllegalStateException("Service['${service.name}'] already exists!")
+            throw IllegalStateException("ServiceSpec['${service.name}'] already exists!")
         }
     }
 
-    fun getService(serviceName: String): Service? {
+    fun getService(serviceName: String): ServiceSpec? {
         return if (exists(serviceName)) {
             val json = readDescriptor(serviceName)
-            json.mapTo(Service::class.java)
+            json.mapTo(ServiceSpec::class.java)
         } else {
             null
         }
     }
 
-    fun getServices(): List<Service> {
+    fun getServices(): List<ServiceSpec> {
         val serviceNames = Workspace.listDirectories(vertx, pathPrefix)
         val descriptors  = serviceNames.map {
-            readDescriptor(it).mapTo(Service::class.java)
+            readDescriptor(it).mapTo(ServiceSpec::class.java)
         }
 
         return descriptors
     }
 
-    private fun writeDescriptor(service: Service) {
+    private fun writeDescriptor(service: ServiceSpec) {
         val descriptorPath = "$pathPrefix/${service.name}/service.json"
         val data = Buffer.buffer(JsonObject.mapFrom(service).toString())
         Workspace.writeFile(vertx, descriptorPath, data)
@@ -51,7 +51,7 @@ class FileSystemServiceRepo(private val vertx: Vertx) {
         if (Workspace.contains(vertx, descriptorPath)) {
             return Workspace.readFile(vertx, descriptorPath).toJsonObject()
         } else {
-            throw IllegalStateException("Service['$serviceName'] missing config!")
+            throw IllegalStateException("ServiceSpec['$serviceName'] missing config!")
         }
     }
 

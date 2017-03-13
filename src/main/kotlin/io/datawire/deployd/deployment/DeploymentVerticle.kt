@@ -2,7 +2,7 @@ package io.datawire.deployd.deployment
 
 import io.datawire.deployd.kubernetes.KubernetesManager
 import io.datawire.deployd.persistence.Workspace
-import io.datawire.deployd.service.Service
+import io.datawire.deployd.service.ServiceSpec
 import io.datawire.deployd.terraform.RemoteParameters
 import io.datawire.deployd.terraform.terraformSetup
 import io.datawire.deployd.world.loadWorld
@@ -21,9 +21,9 @@ import java.nio.file.Paths
 class DeploymentVerticle : BaseVerticle<DeploymentConfig>(DeploymentConfig::class) {
 
 //    override fun start(startFuture: Future<Void>?) {
-//        logger.info("Service Manager starting")
+//        logger.info("ServiceSpec Manager starting")
 //        registerEventBusCodec(DeploymentContext::class)
-//        registerEventBusCodec(Service::class)
+//        registerEventBusCodec(ServiceSpec::class)
 //
 //        checkKubernetesConnectivity()
 //
@@ -32,19 +32,19 @@ class DeploymentVerticle : BaseVerticle<DeploymentConfig>(DeploymentConfig::clas
 //    }
 //
 //    override fun stop(stopFuture: Future<Void>?) {
-//        logger.info("Service Manager stopping")
+//        logger.info("ServiceSpec Manager stopping")
 //        super.stop(stopFuture)
 //    }
 //
 //    override fun start() {
-//        vertx.eventBus().localConsumer<Service>("deploy.ServiceSetup", this::handleService)
+//        vertx.eventBus().localConsumer<ServiceSpec>("deploy.ServiceSetup", this::handleService)
 //        vertx.eventBus().localConsumer<DeploymentRequest>("deploy.DeploymentRequest", this::handleDeployment)
-//        logger.info("Service Manager started")
+//        logger.info("ServiceSpec Manager started")
 //    }
 //
 //    override fun stop() {
 //        super.stop()
-//        logger.info("Service Manager stopped")
+//        logger.info("ServiceSpec Manager stopped")
 //    }
 //
 //    private fun checkKubernetesConnectivity() {
@@ -53,7 +53,7 @@ class DeploymentVerticle : BaseVerticle<DeploymentConfig>(DeploymentConfig::clas
 //        ns ?: throw RuntimeException("Could not find main kubernetes namespace")
 //    }
 //
-//    private fun handleService(msg: Message<Service>) {
+//    private fun handleService(msg: Message<ServiceSpec>) {
 //        val world = loadWorld(vertx)
 //        val servicePath = Workspace.path(vertx)
 //        terraformSetup(

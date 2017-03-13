@@ -2,10 +2,10 @@ package io.datawire.md
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.datawire.deployd.ApiConfig
-import io.datawire.deployd.service.Service
-import io.datawire.md.fabric.FabricSpec
-import io.datawire.md.fabric.putFabric
-import io.datawire.md.fabric.readFabric
+import io.datawire.deployd.service.ServiceSpec
+import io.datawire.md.deploy.Deployment
+import io.datawire.md.fabric.FabricApi
+import io.datawire.md.service.ServiceApi
 import io.datawire.md.service.validate
 import io.datawire.vertx.BaseVerticle
 import io.datawire.vertx.VerticleDeployer
@@ -98,45 +98,32 @@ private fun configure(router: Router) {
         consumes(JSON_TYPE)
         consumes(YAML_TYPE)
         produces(JSON_TYPE)
-        handler(::createFabric)
+        handler(FabricApi::putFabric)
     }
 
-    router.get("/fabric").apply {
-        produces(JSON_TYPE)
-        handler(::getFabric)
+    router.get("/fabric").apply             { produces(JSON_TYPE); handler(FabricApi::getFabric) }
+    router.get("/fabric/modules").apply     { produces(JSON_TYPE); handler(FabricApi::listModules) }
+    router.get("/fabric/modules/:id").apply { produces(JSON_TYPE); handler(FabricApi::getModule) }
+    router.post("/fabric/modules").apply {
+        consumes(JSON_TYPE)
+        consumes(YAML_TYPE)
+        handler(FabricApi::putModule)
     }
 
     router.post("/services").apply {
         consumes(JSON_TYPE)
         consumes(YAML_TYPE)
         produces(JSON_TYPE)
-        handler(::upsertService)
+        handler(ServiceApi::upsertService)
     }
+
+    router.get("/services").apply       { produces(JSON_TYPE); handler(ServiceApi::listServices) }
+    router.get("/services/:name").apply { produces(JSON_TYPE); handler(ServiceApi::getService) }
 
     router.post("/services/:name/deploy").apply {
         consumes(JSON_TYPE)
         produces(JSON_TYPE)
-        handler(::deployService)
     }
-}
-
-private fun createFabric(ctx: RoutingContext) {
-    val vertx = ctx.vertx()
-    val req = ctx.request()
-    req.bodyHandler { body ->
-        val fabricSpec = readBody<FabricSpec>(req.getHeader(HttpHeaders.CONTENT_TYPE), body)
-        putFabric(vertx, fabricSpec)
-
-        noContentResponse(ctx.response())
-    }
-}
-
-private fun getFabric(ctx: RoutingContext) {
-    readFabric(ctx.vertx())?.let {
-
-        jsonResponse(ctx.response(), it.copy(amazon = it.amazon.copy(secretKey = null)))
-
-    } ?: notFoundResponse(ctx.response())
 }
 
 private fun upsertService(ctx: RoutingContext) {
@@ -144,12 +131,12 @@ private fun upsertService(ctx: RoutingContext) {
     val req = ctx.request()
 
     req.bodyHandler { body ->
-        val service = readBody<Service>(req.getHeader(HttpHeaders.CONTENT_TYPE), body)
+        val service = readBody<ServiceSpec>(req.getHeader(HttpHeaders.CONTENT_TYPE), body)
 
         validate(vertx, service)
         vertx.eventBus().send<Deployment>("deploy.service:upsert", service) { reply ->
             if (reply.succeeded()) {
-                jsonResponse(ctx.response(), reply.result().body())
+                jsonResponse(ctx, reply.result().body())
             } else {
                 ctx.fail(reply.cause())
             }
@@ -162,10 +149,10 @@ private fun deployService(ctx: RoutingContext) {
     val req = ctx.request()
 
     req.bodyHandler { body ->
-        val service = readBody<Service>(req.getHeader(HttpHeaders.CONTENT_TYPE), body)
+        val service = readBody<ServiceSpec>(req.getHeader(HttpHeaders.CONTENT_TYPE), body)
 
         validate(vertx, service)
-        vertx.eventBus().send<Service>("deploy.service:deploy", service) {
+        vertx.eventBus().send<ServiceSpec>("deploy.service:deploy", service) {
 
         }
     }

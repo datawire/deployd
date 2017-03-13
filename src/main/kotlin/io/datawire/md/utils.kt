@@ -1,6 +1,7 @@
 package io.datawire.md
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.datawire.deployd.api.collectionResult
 import io.datawire.vertx.json.ObjectMappers.mapper
 import io.datawire.vertx.json.ObjectMappers.prettyMapper
 import io.datawire.vertx.json.ObjectMappers.yamlMapper
@@ -9,6 +10,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpHeaders
 import io.vertx.core.http.HttpServerResponse
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.web.RoutingContext
 import java.nio.charset.Charset
 
 
@@ -25,11 +27,25 @@ fun toYaml(any: Any): String = yamlMapper.writeValueAsString(any)
 
 fun toJsonObject(any: Any): JsonObject = JsonObject.mapFrom(any)
 
-fun jsonResponse(response: HttpServerResponse, payload: Any, headers: Map<String, String> = emptyMap()) {
-    with(response) {
+
+fun jsonCollectionResponse(ctx: RoutingContext,
+                           collectionName: String,
+                           collection: Collection<Any>,
+                           headers: Map<String, String> = emptyMap()) {
+
+    val result = collectionResult(collectionName, collection)
+    with(ctx.response()) {
         headers.forEach { (name, value) -> putHeader(name, value) }
         putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
-        end(toJson(payload))
+        end(result)
+    }
+}
+
+fun jsonResponse(ctx: RoutingContext, item: Any, headers: Map<String, String> = emptyMap()) {
+    with(ctx.response()) {
+        headers.forEach { (name, value) -> putHeader(name, value) }
+        putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+        end(toJson(item))
     }
 }
 

@@ -64,13 +64,13 @@ data class Frontend(@JsonProperty val name: String,
                     @JsonProperty val type: FrontendType,
                     @JsonProperty val ports: Collection<FrontendPort>) : Shareable
 
-data class Service(@JsonProperty val name: String,
-                   @JsonProperty val metadata: Metadata = emptyMap(),
-                   @JsonProperty val deploy: Deployable,
-                   @JsonProperty val network: Network,
-                   @JsonProperty val requires: List<Requirement> = emptyList()) : Shareable
+data class ServiceSpec(@JsonProperty val name: String,
+                       @JsonProperty val metadata: Metadata = emptyMap(),
+                       @JsonProperty val deploy: Deployable,
+                       @JsonProperty val network: Network,
+                       @JsonProperty val requires: List<Requirement> = emptyList()) : Shareable
 
-fun loadServiceDescriptor(text: String) = ObjectMappers.yamlMapper.readValue<Service>(text)
+fun loadServiceDescriptor(text: String) = ObjectMappers.yamlMapper.readValue<ServiceSpec>(text)
 
 fun checkFrontendToBackendPortMapping(frontend: Frontend, backends: Collection<Backend>) {
     val backendMap = backends.associateBy { it.name }

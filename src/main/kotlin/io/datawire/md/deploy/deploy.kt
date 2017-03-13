@@ -1,10 +1,11 @@
-package io.datawire.md
+package io.datawire.md.deploy
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.datawire.deployd.EmptyConfig
 import io.datawire.deployd.persistence.Workspace
-import io.datawire.deployd.service.Service
+import io.datawire.deployd.service.ServiceSpec
 import io.datawire.deployd.terraform.*
+import io.datawire.md.*
 import io.datawire.md.fabric.*
 import io.datawire.md.service.ServiceRef
 import io.datawire.md.service.validate
@@ -27,43 +28,13 @@ private const val PLAN_TERRAFORM   = "deploy.service:plan-terraform"
 private const val APPLY_TERRAFORM  = "deploy.service:apply-terraform"
 
 
-enum class DeploymentStatus {
-    @JsonProperty("not-started")
-    NOT_STARTED,
-
-    @JsonProperty("in-progress")
-    IN_PROGRESS,
-
-    @JsonProperty("succeeded")
-    SUCCEEDED,
-
-    @JsonProperty("failed")
-    FAILED
-}
-
-enum class UpdateType {
-    @JsonProperty("specification")
-    SPECIFICATION_UPDATE,
-
-    @JsonProperty("implementation")
-    IMPLEMENTATION_UPDATE
-}
-
-
-data class Deployment(@JsonProperty val id      : String,
-                      @JsonProperty val update  : UpdateType,
-                      @JsonProperty val status  : DeploymentStatus,
-                      @JsonProperty val service : ServiceRef)
-
-data class DeploymentContext(@JsonProperty val deployment: Deployment, @JsonProperty val service: Service)
-
 
 class DeploymentVerticle : BaseVerticle<EmptyConfig>(EmptyConfig::class) {
 
     override fun start(startFuture: Future<Void>?) {
         registerEventBusCodec(Deployment::class)
         registerEventBusCodec(DeploymentContext::class)
-        registerEventBusCodec(Service::class)
+        registerEventBusCodec(ServiceSpec::class)
 
         checkKubernetesConnectivity()
 
@@ -72,7 +43,7 @@ class DeploymentVerticle : BaseVerticle<EmptyConfig>(EmptyConfig::class) {
     }
 
     override fun start() {
-        vertx.eventBus().localConsumer<Service>(UPSERT_SERVICE).handler(this::updateSpecification)
+        vertx.eventBus().localConsumer<ServiceSpec>(UPSERT_SERVICE).handler(this::updateSpecification)
         vertx.eventBus().localConsumer<DeploymentContext>(UPDATE_TERRAFORM).handler(this::updateTerraform)
         vertx.eventBus().localConsumer<DeploymentContext>(PLAN_TERRAFORM).handler(this::planTerraform)
         vertx.eventBus().localConsumer<DeploymentContext>(APPLY_TERRAFORM).handler(this::applyTerraform)
@@ -89,7 +60,7 @@ class DeploymentVerticle : BaseVerticle<EmptyConfig>(EmptyConfig::class) {
         Workspace.writeFile(vertx, fsPath, toBuffer(toJson(template)))
     }
 
-    private fun loadServiceSpec(serviceName: String, deploymentId: String? = null): Service? {
+    private fun loadServiceSpec(serviceName: String, deploymentId: String? = null): ServiceSpec? {
         val fsPath = "services/$serviceName/service${ deploymentId?.let {"-$it"} }.yaml"
         if (Workspace.contains(vertx, fsPath)) {
             val data = Workspace.readFile(vertx, fsPath)
@@ -99,12 +70,12 @@ class DeploymentVerticle : BaseVerticle<EmptyConfig>(EmptyConfig::class) {
         }
     }
 
-    private fun writeServiceSpec(service: Service) {
+    private fun writeServiceSpec(service: ServiceSpec) {
         val fsPath = "services/${service.name}/service.yaml"
         Workspace.writeFile(vertx, fsPath, toBuffer(toYaml(service)))
     }
 
-    private fun updateSpecification(msg: Message<Service>) {
+    private fun updateSpecification(msg: Message<ServiceSpec>) {
         val service = msg.body()
 
         val deployment = Deployment(
@@ -133,7 +104,8 @@ class DeploymentVerticle : BaseVerticle<EmptyConfig>(EmptyConfig::class) {
     private fun planTerraform(msg: Message<DeploymentContext>) {
         val deploymentCtx = msg.body()!!
         val deployment = deploymentCtx.deployment
-        val fabric = readFabric(vertx)!!
+        val fabricStore = FabricPersistence(vertx)
+        val fabric = fabricStore.getFabric()!!
 
         try {
             val path = Paths.get(Workspace.path(vertx)).resolve("services/${deploymentCtx.service.name}")
@@ -157,7 +129,8 @@ class DeploymentVerticle : BaseVerticle<EmptyConfig>(EmptyConfig::class) {
     private fun applyTerraform(msg: Message<DeploymentContext>) {
         val deploymentCtx = msg.body()!!
         val deployment = deploymentCtx.deployment
-        val fabric = readFabric(vertx)!!
+        val fabricStore = FabricPersistence(vertx)
+        val fabric = fabricStore.getFabric()
 
         try {
             val path = Paths.get(Workspace.path(vertx)).resolve("services/${deploymentCtx.service.name}")
@@ -173,46 +146,48 @@ class DeploymentVerticle : BaseVerticle<EmptyConfig>(EmptyConfig::class) {
     }
 
     private fun updateTerraform(msg: Message<DeploymentContext>) {
-        val ctx = msg.body()
-        val deployment = ctx.deployment
-        val latestSpec = ctx.service
-        updateDeployment(deployment.copy(status = DeploymentStatus.IN_PROGRESS))
-
-        try {
-            val currentSpec = loadServiceSpec(ctx.service.name)
-            if (latestSpec.requires != currentSpec?.requires) {
-                val tfModFactory = TfModuleFactory()
-                val mods = latestSpec.requires.map {
-                    val fabric = readFabric(vertx)!!
-                    val module = lookupModule(vertx, it.id)!! // TODO: no bueno
-
-                    val planningCtx = PlanningContext(
-                            deployId     = deployment.id,
-                            moduleSpec   = module,
-                            parameters   = Parameters(
-                                    (it.params + fabric.parameters) +
-                                            mapOf("__service_name__" to deployment.service.name,
-                                                    "__fabric_name__" to fabric.name))
-                    )
-
-                    tfModFactory.create(planningCtx)
-                }
-
-                val template = TfTemplate(mods.associateBy { it.name })
-                writeTerraformTemplate(latestSpec.name, template)
-
-                vertx.eventBus().send(PLAN_TERRAFORM, ctx)
-            } else {
-                // replace the current spec with the old so everything else is up to date
-                writeServiceSpec(ctx.service)
-
-                // update status to complete
-                updateDeployment(deployment.copy(status = DeploymentStatus.SUCCEEDED))
-            }
-        } catch (any: Throwable) {
-            logger.error("ERROR", any)
-            updateDeployment(deployment.copy(status = DeploymentStatus.FAILED))
-        }
+//        val ctx = msg.body()
+//        val deployment = ctx.deployment
+//        val latestSpec = ctx.service
+//        updateDeployment(deployment.copy(status = DeploymentStatus.IN_PROGRESS))
+//
+//        try {
+//            val currentSpec = loadServiceSpec(ctx.service.name)
+//            if (latestSpec.requires != currentSpec?.requires) {
+//                val tfModFactory = TfModuleFactory()
+//                val mods = latestSpec.requires.map {
+//                    val fabricStore = FabricPersistence(vertx)
+//                    val fabric = fabricStore.getFabric()
+//                    val module = fabricStore.getModuleById(it.id)
+//
+//
+//                    val planningCtx = PlanningContext(
+//                            deployId     = deployment.id,
+//                            moduleSpec   = module as TerraformModuleSpec,
+//                            parameters   = Parameters(
+//                                    (it.params + fabric.parameters) +
+//                                            mapOf("__service_name__" to deployment.service.name,
+//                                                    "__fabric_name__" to fabric.name))
+//                    )
+//
+//                    tfModFactory.create(planningCtx)
+//                }
+//
+//                val template = TfTemplate(mods.associateBy { it.name })
+//                writeTerraformTemplate(latestSpec.name, template)
+//
+//                vertx.eventBus().send(PLAN_TERRAFORM, ctx)
+//            } else {
+//                // replace the current spec with the old so everything else is up to date
+//                writeServiceSpec(ctx.service)
+//
+//                // update status to complete
+//                updateDeployment(deployment.copy(status = DeploymentStatus.SUCCEEDED))
+//            }
+//        } catch (any: Throwable) {
+//            logger.error("ERROR", any)
+//            updateDeployment(deployment.copy(status = DeploymentStatus.FAILED))
+//        }
     }
 
     private fun updateDeployment(deployment: Deployment) {

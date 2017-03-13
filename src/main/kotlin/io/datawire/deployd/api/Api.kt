@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.datawire.md.toJson
 import io.datawire.vertx.json.ObjectMappers
 import io.vertx.ext.web.Router
 
@@ -32,17 +33,13 @@ fun <T: Any> result(item: T): String =
         ObjectMappers.prettyMapper.writeValueAsString(item)
 
 fun <T: Any> collectionResult(name: String, items: Collection<T>): String {
-    val res = ObjectMappers.prettyMapper.writeValueAsString(Results(name, items))
+    val res = toJson(Results(name, items))
     return res
 }
 
 inline fun <reified T: Any> Api.fromJson(data: String) = ObjectMappers.mapper.readValue<T>(data)
 
 inline fun <reified T: Any> Api.fromYaml(data: String) = ObjectMappers.yamlMapper.readValue<T>(data)
-
-inline fun <reified T: Any> fromJson(data: String) = ObjectMappers.mapper.readValue<T>(data)
-
-inline fun <reified T: Any> fromYaml(data: String) = ObjectMappers.yamlMapper.readValue<T>(data)
 
 @JsonSerialize(using = ResultsSerializer::class)
 data class Results<out T>(val name: String, val items: Collection<T>)

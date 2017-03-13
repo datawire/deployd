@@ -1,6 +1,6 @@
 package io.datawire.md.service
 
-import io.datawire.deployd.service.Service
+import io.datawire.deployd.service.ServiceSpec
 import io.vertx.core.Vertx
 import io.vertx.core.shareddata.SharedData
 
@@ -8,7 +8,7 @@ import io.vertx.core.shareddata.SharedData
 /**
  * Validate a service specification.
  */
-fun validate(vertx: Vertx, service: Service) {
+fun validate(vertx: Vertx, service: ServiceSpec) {
     val errors = mutableListOf<String>()
 
     for (requirement in service.requires) {

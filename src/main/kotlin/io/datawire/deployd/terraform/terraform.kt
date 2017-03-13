@@ -104,7 +104,7 @@ private fun execute(workingDirectory: Path, args: List<String>): Pair<Int, Strin
     }
 
     val proc = pb.start()
-    val output = proc.inputStream.bufferedReader().use { it.readText() }
+    val output = proc.inputStream.bufferedReader().use { it.readLine() }
 
     val timedOut = !proc.waitFor(10L, TimeUnit.MINUTES)
     return if (!timedOut) Pair(proc.exitValue(), output) else throw TimeoutException("Timed out on command: `${pb.command()}`")

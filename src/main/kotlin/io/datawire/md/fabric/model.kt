@@ -10,12 +10,44 @@ data class FabricSpec(@JsonProperty val name: String,
                       @JsonProperty val terraform: TerraformProvider)
 
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+        JsonSubTypes.Type(value = TerraformModuleSpec::class, name = "terraform")
+)
+abstract class ModuleSpec(
+        @JsonProperty
+        open val name: String,
+
+        @JsonProperty
+        open val version: Int
+) {
+    val id get() = "$name-v$version"
+}
+
+data class TerraformModuleSpec(
+        override val name: String,
+        override val version: Int,
+
+        @JsonProperty
+        val source: String,
+
+        @JsonProperty
+        val inputMappings: Map<String, TfVariableSpec> = emptyMap(),
+
+        @JsonProperty
+        val outputMappings: Map<String, String> = emptyMap()) : ModuleSpec(name, version)
+
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes(
+        JsonSubTypes.Type(value = AwsProvider::class, name = "aws")
+)
+interface Provider
+
+
 data class AwsProvider(@JsonProperty("access_key") val accessKey: String?,
                        @JsonProperty("secret_key") val secretKey: String?,
-                       @JsonProperty("region")     val region: String) : Shareable
-
-data class AwsNetwork(@JsonProperty val id: String,
-                      @JsonProperty val subnets: List<String>) : Shareable
+                       @JsonProperty("region")     val region: String) : Provider
 
 
 data class TerraformProvider(@JsonProperty("state_bucket") val stateBucket: String)

@@ -32,7 +32,7 @@ object ServicesApi : Api {
         }
     }
 
-    private fun validate(service: Service) {
+    private fun validate(service: ServiceSpec) {
         for (fe in service.network.frontends) {
             checkFrontendToBackendPortMapping(fe, service.network.backends)
         }
@@ -43,7 +43,7 @@ object ServicesApi : Api {
         val resp = ctx.response()
 
         val service = when(req.getHeader(HttpHeaders.CONTENT_TYPE)) {
-            "application/json" -> fromJson<Service>(ctx.bodyAsString)
+            "application/json" -> fromJson<ServiceSpec>(ctx.bodyAsString)
             "application/yaml" -> fromYaml(ctx.bodyAsString)
             else -> throw RuntimeException("Unknown Content-Type: ${req.getHeader(HttpHeaders.CONTENT_TYPE)}")
         }

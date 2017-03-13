@@ -1,7 +1,5 @@
 package io.datawire.md.fabric
 
-
-import io.datawire.vertx.json.ObjectMappers
 import io.vertx.core.logging.LoggerFactory
 
 
@@ -41,23 +39,4 @@ Default = ${spec.default}
 
         return TfModule(ctx.moduleSpec.name, ctx.moduleSpec.source, TfVariables(vars))
     }
-}
-
-
-fun main(args: Array<String>) {
-//    val mapper = ObjectMappers.prettyMapper
-//    val tfModules = TfModuleFactory()
-//
-//    val modSpec = TfModuleSpec("foo", 1, "github", mapOf("world_name" to TfVariableSpec("string", "fabric.name")), mapOf())
-//
-//    val ctx = PlanningContext("deploy-001", modSpec, Parameters(mapOf(
-//            "fabric.name"  to "development",
-//            "service.name" to "hello-goodbye"
-//    )))
-//
-//    val module = tfModules.create(ctx)
-//    val template = TfTemplate(mapOf("foo" to module))
-//
-//    println("---- Module ----")
-//    println(mapper.writeValueAsString(template))
 }
