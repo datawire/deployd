@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.datawire.deployd
+package io.datawire.md
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonUnwrapped

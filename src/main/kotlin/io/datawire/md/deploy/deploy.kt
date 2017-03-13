@@ -1,12 +1,14 @@
 package io.datawire.md.deploy
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import io.datawire.deployd.EmptyConfig
+import io.datawire.md.EmptyConfig
 import io.datawire.deployd.persistence.Workspace
 import io.datawire.deployd.service.ServiceSpec
-import io.datawire.deployd.terraform.*
 import io.datawire.md.*
+import io.datawire.md.deploy.terraform.*
+import io.datawire.md.deploy.terraform.TfModule
+import io.datawire.md.deploy.terraform.TfModuleSpec
 import io.datawire.md.fabric.*
+import io.datawire.md.service.ServicePersistence
 import io.datawire.md.service.ServiceRef
 import io.datawire.md.service.validate
 import io.datawire.vertx.BaseVerticle
@@ -26,10 +28,12 @@ private const val UPSERT_SERVICE   = "deploy.service:upsert"
 private const val UPDATE_TERRAFORM = "deploy.service:update-terraform"
 private const val PLAN_TERRAFORM   = "deploy.service:plan-terraform"
 private const val APPLY_TERRAFORM  = "deploy.service:apply-terraform"
-
+private const val GENERATE_KUBE    = "deploy.service:deploy-kube"
 
 
 class DeploymentVerticle : BaseVerticle<EmptyConfig>(EmptyConfig::class) {
+
+    private val terraform = Terraformer()
 
     override fun start(startFuture: Future<Void>?) {
         registerEventBusCodec(Deployment::class)
@@ -55,7 +59,7 @@ class DeploymentVerticle : BaseVerticle<EmptyConfig>(EmptyConfig::class) {
         ns ?: throw RuntimeException("Could not find main kubernetes namespace")
     }
 
-    private fun writeTerraformTemplate(serviceName: String, template: TfTemplate) {
+    private fun writeTerraformTemplate(serviceName: String, template: TfTemplateOld) {
         val fsPath = "services/$serviceName/terraform.tf.json"
         Workspace.writeFile(vertx, fsPath, toBuffer(toJson(template)))
     }
@@ -102,50 +106,90 @@ class DeploymentVerticle : BaseVerticle<EmptyConfig>(EmptyConfig::class) {
     }
 
     private fun planTerraform(msg: Message<DeploymentContext>) {
-        val deploymentCtx = msg.body()!!
-        val deployment = deploymentCtx.deployment
-        val fabricStore = FabricPersistence(vertx)
-        val fabric = fabricStore.getFabric()!!
-
-        try {
-            val path = Paths.get(Workspace.path(vertx)).resolve("services/${deploymentCtx.service.name}")
-
-            terraformSetup(path,
-                    deploymentCtx.service.name,
-                    RemoteParameters(fabric.terraform.stateBucket, "us-east-1"))
-
-            val res = terraformPlan(path, null, false)
-
-            println(res)
-
-            vertx.eventBus().send(APPLY_TERRAFORM, deploymentCtx)
-
-        } catch (any: Throwable) {
-            logger.error("ERROR", any)
-            updateDeployment(deployment.copy(status = DeploymentStatus.FAILED))
-        }
+//        val deploymentCtx = msg.body()!!
+//        val deployment = deploymentCtx.deployment
+//        val fabricStore = FabricPersistence(vertx)
+//        val fabric = fabricStore.getFabric()!!
+//
+//        try {
+//            val path = Paths.get(Workspace.path(vertx)).resolve("services/${deploymentCtx.service.name}")
+//
+//
+//            terraformSetup(path,
+//                    deploymentCtx.service.name,
+//                    RemoteParameters(fabric.terraform.stateBucket, "us-east-1"))
+//
+//            val res = terraformPlan(path, null, false)
+//
+//            println(res)
+//
+//            vertx.eventBus().send(APPLY_TERRAFORM, deploymentCtx)
+//
+//        } catch (any: Throwable) {
+//            logger.error("ERROR", any)
+//            updateDeployment(deployment.copy(status = DeploymentStatus.FAILED))
+//        }
     }
 
     private fun applyTerraform(msg: Message<DeploymentContext>) {
-        val deploymentCtx = msg.body()!!
-        val deployment = deploymentCtx.deployment
-        val fabricStore = FabricPersistence(vertx)
-        val fabric = fabricStore.getFabric()
+//        val deploymentCtx = msg.body()!!
+//        val deployment = deploymentCtx.deployment
+//        val fabricStore = FabricPersistence(vertx)
+//        val fabric = fabricStore.getFabric()
+//
+//        try {
+//            val path = Paths.get(Workspace.path(vertx)).resolve("services/${deploymentCtx.service.name}")
+//
+//            val plan = SucceededWithDifferences(path, path.resolve("plan.out"))
+//            terraformApply(SucceededWithDifferences(path, path.resolve("plan.out")))
+//            updateDeployment(deployment.copy(status = DeploymentStatus.SUCCEEDED))
+//
+//        } catch (any: Throwable) {
+//            logger.error("ERROR", any)
+//            updateDeployment(deployment.copy(status = DeploymentStatus.FAILED))
+//        }
+    }
 
+    private fun updateTerraform(msg: Message<DeploymentContext>) {
+        val deployCtx  = msg.body()
+        val deployment = deployCtx.deployment
+        val newSpec    = deployCtx.service
+
+        updateDeployment(deployment.copy(status = DeploymentStatus.IN_PROGRESS))
         try {
-            val path = Paths.get(Workspace.path(vertx)).resolve("services/${deploymentCtx.service.name}")
+            val serviceStore = ServicePersistence(vertx)
+            val fabricStore = FabricPersistence(vertx)
 
-            val plan = SucceededWithDifferences(path, path.resolve("plan.out"))
-            terraformApply(SucceededWithDifferences(path, path.resolve("plan.out")))
-            updateDeployment(deployment.copy(status = DeploymentStatus.SUCCEEDED))
+            val currentSpec = serviceStore.getServiceByName(deployment.service.name)
+            if (currentSpec != newSpec) {
 
+                val fabric = fabricStore.getFabric()
+                val requirements = mutableListOf<Pair<TfModule, List<TfOutput>>>()
+                newSpec.requires.fold(requirements) { acc, req ->
+                    val mod = fabricStore.getModuleById(req.id) as TfModuleSpec // TODO: BAD
+
+                    val params = req.params + fabric!!.parameters + mapOf("__fabric_name__" to fabric.name, "__service_name__" to deployment.service.name)
+                    val tfGenCtx = TfGenerateModuleContext(req.alias, mod, params)
+
+                    requirements += terraform.generateModuleAndOutputs(tfGenCtx)
+                    requirements
+                }
+
+                val template = terraform.generateTemplate(fabric!!.amazon.toTerraformProvider(), requirements)
+                val json = toJson(template)
+                serviceStore.putFile(deployment.service, "terraform.tf.json", toBuffer(json))
+
+                vertx.eventBus().send(PLAN_TERRAFORM, deployCtx)
+            } else {
+                updateDeployment(deployment.copy(status = DeploymentStatus.SUCCEEDED))
+            }
         } catch (any: Throwable) {
             logger.error("ERROR", any)
             updateDeployment(deployment.copy(status = DeploymentStatus.FAILED))
         }
-    }
 
-    private fun updateTerraform(msg: Message<DeploymentContext>) {
+
+
 //        val ctx = msg.body()
 //        val deployment = ctx.deployment
 //        val latestSpec = ctx.service

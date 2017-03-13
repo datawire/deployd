@@ -40,7 +40,7 @@ abstract class BaseTest {
         @JvmStatic
         @BeforeClass
         fun beforeSetup() {
-            // Enforce that these tests run in UTC. MCP servers operate in UTC.
+            // Enforce that these tests execute in UTC. MCP servers operate in UTC.
             TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
 
             System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory")

@@ -1,6 +1,7 @@
 package io.datawire.md.fabric
 
 import com.fasterxml.jackson.annotation.*
+import io.datawire.md.deploy.terraform.TfProvider
 import io.vertx.core.shareddata.Shareable
 
 
@@ -12,7 +13,7 @@ data class FabricSpec(@JsonProperty val name: String,
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
-        JsonSubTypes.Type(value = TerraformModuleSpec::class, name = "terraform")
+        JsonSubTypes.Type(value = TfModuleSpec::class, name = "terraform")
 )
 abstract class ModuleSpec(
         @JsonProperty
@@ -24,18 +25,18 @@ abstract class ModuleSpec(
     val id get() = "$name-v$version"
 }
 
-data class TerraformModuleSpec(
-        override val name: String,
-        override val version: Int,
-
-        @JsonProperty
-        val source: String,
-
-        @JsonProperty
-        val inputMappings: Map<String, TfVariableSpec> = emptyMap(),
-
-        @JsonProperty
-        val outputMappings: Map<String, String> = emptyMap()) : ModuleSpec(name, version)
+//data class TerraformModuleSpec(
+//        override val name: String,
+//        override val version: Int,
+//
+//        @JsonProperty
+//        val source: String,
+//
+//        @JsonProperty
+//        val inputMappings: Map<String, TfVariableSpecOld> = emptyMap(),
+//
+//        @JsonProperty
+//        val outputMappings: Map<String, String> = emptyMap()) : ModuleSpec(name, version)
 
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -47,7 +48,18 @@ interface Provider
 
 data class AwsProvider(@JsonProperty("access_key") val accessKey: String?,
                        @JsonProperty("secret_key") val secretKey: String?,
-                       @JsonProperty("region")     val region: String) : Provider
+                       @JsonProperty("region")     val region: String) : Provider {
+
+    fun toTerraformProvider(): TfProvider {
+
+        // TODO: use environment vars for the secrets in the future
+        return TfProvider(name = "aws", params = mapOf(
+                "access_key" to accessKey!!,
+                "secret_key" to secretKey!!,
+                "region" to region
+        ))
+    }
+}
 
 
 data class TerraformProvider(@JsonProperty("state_bucket") val stateBucket: String)
@@ -64,13 +76,14 @@ data class PlanningContext(val deployId     : String,
 data class TfModuleSpec(@JsonProperty val name    : String,
                         @JsonProperty val version : Int,
                         @JsonProperty val source  : String,
-                        @JsonProperty val inputs  : Map<String, TfVariableSpec>,
+                        @JsonProperty val inputs  : Map<String, TfVariableSpecOld>,
                         @JsonProperty val outputs : Map<String, String>) {
 
     val id get() = "${name.toLowerCase()}-v$version"
 }
 
-data class TfVariableSpec(
+data class TfVariableSpecOld(
+        @get:JsonIgnoreProperties val name: String,
         @JsonProperty val type: String,
         @JsonProperty val source: String,
         @JsonProperty val default: Any? = null)
@@ -89,4 +102,4 @@ data class TfModule(@get:JsonIgnore
                     @JsonUnwrapped
                     val variables: TfVariables = TfVariables())
 
-class TfTemplate(@JsonProperty("module") val modules: Map<String, TfModule>)
+class TfTemplateOld(@JsonProperty("module") val modules: Map<String, TfModule>)

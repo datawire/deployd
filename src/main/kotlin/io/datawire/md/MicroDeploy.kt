@@ -1,4 +1,4 @@
-package io.datawire.deployd
+package io.datawire.md
 
 import io.datawire.md.deploy.DeploymentVerticle
 import io.datawire.deployd.persistence.Workspace

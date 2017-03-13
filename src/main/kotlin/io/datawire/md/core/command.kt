@@ -8,7 +8,7 @@ import java.util.concurrent.TimeoutException
 data class Result(val exitCode: Int, val data: String)
 
 
-fun run(command: List<String>, cwd: String, env: Map<String, String>, print: Boolean = true): Result {
+fun execute(command: List<String>, cwd: String, env: Map<String, String>, print: Boolean = true): Result {
     val pb = ProcessBuilder().apply {
         command(command)
         directory(File(cwd))

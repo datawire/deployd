@@ -1,4 +1,4 @@
-package io.datawire.deployd.kubernetes
+package io.datawire.md.deploy.kubernetes
 
 import io.datawire.deployd.deployment.DeploymentContext
 import io.datawire.deployd.service.Backend

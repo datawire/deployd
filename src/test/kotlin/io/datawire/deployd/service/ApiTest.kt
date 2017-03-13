@@ -1,8 +1,8 @@
 package io.datawire.deployd.service
 
-import io.datawire.deployd.ApiConfig
-import io.datawire.deployd.ServerConfig
-import io.datawire.deployd.api.ApiVerticle
+import io.datawire.md.ApiConfig
+import io.datawire.md.ServerConfig
+import io.datawire.md.Api
 import io.datawire.test.BaseTestUsingVertx
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.http.HttpHeaders
@@ -31,7 +31,7 @@ class ApiTest : BaseTestUsingVertx() {
         val apiConfigAsJson = JsonObject(objectMapper.writeValueAsString(apiConfig))
 
         val options = DeploymentOptions().setConfig(apiConfigAsJson)
-        vertx.deployVerticle(ApiVerticle::class.qualifiedName, options, ctx.asyncAssertSuccess())
+        vertx.deployVerticle(Api::class.qualifiedName, options, ctx.asyncAssertSuccess())
     }
 
     @Test

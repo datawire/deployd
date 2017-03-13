@@ -14,7 +14,7 @@
 // * limitations under the License.
 // */
 //
-//package io.datawire.deployd.kubernetes
+//package io.datawire.md.deploy.kubernetes
 //
 //import io.datawire.sentinel.model.DeploymentRequest
 //import io.datawire.sentinel.model.InitializeOrganizationRequest

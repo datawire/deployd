@@ -1,6 +1,6 @@
 package io.datawire.md.core
 
-import io.datawire.deployd.WorkspaceConfig
+import io.datawire.md.WorkspaceConfig
 import io.datawire.md.*
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer

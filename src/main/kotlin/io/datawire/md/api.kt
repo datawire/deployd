@@ -1,7 +1,7 @@
 package io.datawire.md
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.datawire.deployd.ApiConfig
+import io.datawire.md.ApiConfig
 import io.datawire.deployd.service.ServiceSpec
 import io.datawire.md.deploy.Deployment
 import io.datawire.md.fabric.FabricApi

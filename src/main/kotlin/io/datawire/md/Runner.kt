@@ -1,4 +1,4 @@
-package io.datawire.deployd
+package io.datawire.md
 
 import io.vertx.core.Launcher
 import java.io.FileInputStream
